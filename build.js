@@ -9,6 +9,7 @@ const { terser } = require('rollup-plugin-terser')
 const resolve = require('rollup-plugin-node-resolve')
 
 const libName = require('./package.json').name
+const testLibPath = path.resolve(__dirname, './dev')
 const entryPath = path.resolve(__dirname, './src/index.js')
 const outputPath = filename => path.resolve(__dirname, './dist', filename)
 
@@ -70,9 +71,19 @@ console.clear()
 rm('./dist')
 
 const buildVersion = sourcemap => {
-  build(esm, false, sourcemap)
-  build(cjs, false, sourcemap)
-  build(uglifyCjs, true, sourcemap)
+  Promise.all([
+    build(esm, false, sourcemap),
+    build(cjs, false, sourcemap),
+    build(uglifyCjs, true, sourcemap),
+  ]).then(() => {
+    // transfer esm package to dev folder
+    if (fs.existsSync(testLibPath)) {
+      const sdkPath = esm.output.file
+      const toPath = path.join(testLibPath, `${libName}.esm.js`)
+      const readable = fs.createReadStream(sdkPath)
+      readable.on('open', () => readable.pipe(fs.createWriteStream(toPath)))
+    }
+  })
 }
 
 // watch, use in dev and test
