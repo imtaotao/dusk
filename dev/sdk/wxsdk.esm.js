@@ -3,6 +3,16 @@ class Router {
     this.sdk = sdk;
   }
 
+  report(name, payload) {
+    payload.type = name;
+    this.sdk.report('report', payload);
+  }
+
+  reportError(name, payload) {
+    payload.type = name;
+    this.sdk.report('reportError', payload);
+  }
+
 }
 
 const warn = (message, isWarn) => {
@@ -59,6 +69,7 @@ class SDK {
     this.hooks = opts.hooks;
     this.depComponents = new Map();
     this.router = new Router(this);
+    this.installedPlugins = new Set();
     this.timeStack = Object.create(null);
   }
 
@@ -87,16 +98,37 @@ class SDK {
     return null;
   }
 
+  wraper(obj, name, fn) {
+    assert(!(name in obj), 'The method that needs to be wrapped is not a function');
+    obj[name] = createWraper(obj[name], fn);
+  }
+
   report(key, payload) {
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload];
-      this.setTimeout(() => {
+      setTimeout(() => {
         callHook(this.hooks, 'report', [key, this.reportStack[key]]);
         this.reportStack[key] = null;
       }, 200);
     } else {
       this.reportStack[key].push(payload);
     }
+  }
+
+  use(plugin, ...args) {
+    if (this.installedPlugins.has(plugin)) {
+      return;
+    }
+
+    args.unshift(this);
+
+    if (typeof plugin.install === 'function') {
+      plugin.install.apply(plugin, args);
+    } else {
+      plugin.apply(null, args);
+    }
+
+    this.installedPlugins.add(plugin);
   }
 
 }
@@ -106,28 +138,27 @@ const getCurrentPagePath = () => {
   return Array.isArray(pages) && pages.length > 0 ? pages[pages.length - 1].route : null;
 };
 
-const handleRouter = (routerType, sdk, opts = {}) => {
+const handleRouter = (routerType, router, opts = {}) => {
   const {
     fail,
     success
   } = opts;
   const info = {
-    routerType,
     to: opts.url,
     from: getCurrentPagePath()
   };
-  opts.success = createWraper(success, () => sdk.report('router', info));
+  opts.success = createWraper(success, () => router.report(routerType, info));
   opts.fail = createWraper(fail, error => {
     info.error = error;
-    sdk.report('routerError', info);
+    router.reportError(routerType, info);
   });
 };
 
 var overideWX = ((sdk, rewrite) => {
-  rewrite('reLaunch', opts => handleRouter('reLaunch', sdk, opts));
-  rewrite('switchTab', opts => handleRouter('switchTab', sdk, opts));
-  rewrite('navigateTo', opts => handleRouter('navigateTo', sdk, opts));
-  rewrite('redirectTo', opts => handleRouter('redirectTo', sdk, opts));
+  rewrite('reLaunch', opts => handleRouter('reLaunch', sdk.router, opts));
+  rewrite('switchTab', opts => handleRouter('switchTab', sdk.router, opts));
+  rewrite('navigateTo', opts => handleRouter('navigateTo', sdk.router, opts));
+  rewrite('redirectTo', opts => handleRouter('redirectTo', sdk.router, opts));
 });
 
 const SDKCfgNamespace = 'SDKConfig';

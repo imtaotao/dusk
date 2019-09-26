@@ -1,5 +1,5 @@
 import Router from './router'
-import { warn, assert, isUndef, callHook } from './utils'
+import { warn, assert, isUndef, callHook, createWraper } from './utils'
 
 export default class SDK {
   constructor (opts) {
@@ -8,6 +8,7 @@ export default class SDK {
     this.hooks = opts.hooks
     this.depComponents = new Map()
     this.router = new Router(this)
+    this.installedPlugins = new Set()
     this.timeStack = Object.create(null)
   }
 
@@ -35,18 +36,39 @@ export default class SDK {
     return null
   }
 
+  // 用于重写一个方法
+  wraper (obj, name, fn) {
+    assert(!(name in obj), 'The method that needs to be wrapped is not a function')
+    obj[name] = createWraper(obj[name], fn)
+  }
+
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
   report (key, payload) {
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload]
       // 延迟 200ms 做批量上报
-      this.setTimeout(() => {
+      setTimeout(() => {
         callHook(this.hooks, 'report', [key, this.reportStack[key]])
         this.reportStack[key] = null
       }, 200)
     } else {
       this.reportStack[key].push(payload)
     }
+  }
+
+  // 插件
+  use (plugin, ...args) {
+    if (this.installedPlugins.has(plugin)) {
+      return
+    }
+
+    args.unshift(this)
+    if (typeof plugin.install === 'function') {
+      plugin.install.apply(plugin, args)
+    } else {
+      plugin.apply(null, args)
+    }
+    this.installedPlugins.add(plugin)
   }
 }
