@@ -6,11 +6,11 @@ export default class Router {
 
   report (name, payload) {
     payload.type = name
-    this.sdk.report('report', payload)
+    this.sdk.report('router', payload)
   }
 
   reportError (name, payload) {
     payload.type = name
-    this.sdk.report('reportError', payload)
+    this.sdk.report('routerError', payload)
   }
 }

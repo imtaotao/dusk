@@ -7,18 +7,18 @@ class Router {
 
   report(name, payload) {
     payload.type = name;
-    this.sdk.report('report', payload);
+    this.sdk.report('router', payload);
   }
 
   reportError(name, payload) {
     payload.type = name;
-    this.sdk.report('reportError', payload);
+    this.sdk.report('routerError', payload);
   }
 
 }
 
 const warn = (message, isWarn) => {
-  message = `\n[ReportSDK warn]: ${message}\n\n`;
+  message = `\n[SDK warn]: ${message}\n\n`;
 
   if (isWarn) {
     console.warn(message);
@@ -64,6 +64,18 @@ const isPlainObject = obj => {
   return proto === baseProto;
 };
 
+const reportCodes = {
+  'router': 30,
+  'showTime': 21,
+  'startTime': 20,
+  'routerError': 130,
+  'catchGlobalError': 11
+};
+function code (key) {
+  assert(!(key in reportCodes), `The ${key} is does not exist.`);
+  return reportCodes[key];
+}
+
 class SDK {
   constructor(opts) {
     this.opts = opts;
@@ -100,12 +112,9 @@ class SDK {
     return null;
   }
 
-  wraper(obj, name, fn) {
-    assert(!(name in obj), 'The method that needs to be wrapped is not a function');
-    obj[name] = createWraper(obj[name], fn);
-  }
-
   report(key, payload) {
+    key = code(key);
+
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload];
       setTimeout(() => {
@@ -115,6 +124,11 @@ class SDK {
     } else {
       this.reportStack[key].push(payload);
     }
+  }
+
+  wraper(obj, name, fn) {
+    assert(!(name in obj), 'The method that needs to be wrapped is not a function');
+    obj[name] = createWraper(obj[name], fn);
   }
 
   use(plugin, ...args) {
@@ -134,6 +148,7 @@ class SDK {
   }
 
 }
+SDK._reportCodes = reportCodes;
 
 const getCurrentPagePath = () => {
   const pages = getCurrentPages();
