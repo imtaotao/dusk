@@ -4,6 +4,7 @@ import { warn, assert, isUndef, callHook } from './utils'
 export default class SDK {
   constructor (opts) {
     this.opts = opts
+    this.reportStack = {}
     this.hooks = opts.hooks
     this.depComponents = new Map()
     this.router = new Router(this)
@@ -37,8 +38,15 @@ export default class SDK {
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
   report (key, payload) {
-    const [success, res] = callHook(this.hooks, 'report', [key, payload])
-    assert(!success, 'The [report] hooks is not defined.')
-    return res
+    if (isUndef(this.reportStack[key])) {
+      this.reportStack[key] = [payload]
+      // 延迟 200ms 做批量上报
+      this.setTimeout(() => {
+        callHook(this.hooks, 'report', [key, this.reportStack[key]])
+        this.reportStack[key] = null
+      }, 200)
+    } else {
+      this.reportStack[key].push(payload)
+    }
   }
 }

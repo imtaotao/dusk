@@ -19,9 +19,9 @@ export const isUndef = v => {
 
 export const callHook = (hooks, name, params) => {
   if (hooks && typeof hooks[name] === 'function') {
-    return [true, hooks[name].apply(hooks, params)]
+    return hooks[name].apply(hooks, params)
   }
-  return [false, null]
+  return null
 }
 
 export const remove = (list, item) => {
