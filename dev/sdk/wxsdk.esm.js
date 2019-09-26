@@ -1,9 +1,15 @@
-const warn$1 = (message, isWarn) => {
+class Router {
+  constructor(sdk) {
+    this.sdk = sdk;
+  }
+
+}
+
+const warn = (message, isWarn) => {
   message = `\n[ReportSDK warn]: ${message}\n\n`;
 
   if (isWarn) {
     console.warn(message);
-    console.log(121);
     return;
   }
 
@@ -11,7 +17,7 @@ const warn$1 = (message, isWarn) => {
 };
 const assert = (condition, error) => {
   if (condition) {
-    warn$1(error);
+    warn(error);
   }
 };
 const isUndef = v => {
@@ -51,6 +57,7 @@ class SDK {
     this.opts = opts;
     this.hooks = opts.hooks;
     this.depComponents = new Map();
+    this.router = new Router(this);
     this.timeStack = Object.create(null);
   }
 
@@ -58,6 +65,8 @@ class SDK {
     if (typeof type === 'string') {
       if (isUndef(this.timeStack[type])) {
         this.timeStack[type] = Date.now();
+      } else {
+        warn(`Timer [${type}] already exists.`, true);
       }
     }
   }
@@ -70,6 +79,8 @@ class SDK {
         this.timeStack[type] = null;
         return duration;
       }
+    } else {
+      warn(`Timer [${type}] does not exist.`, true);
     }
 
     return null;
@@ -84,7 +95,8 @@ class SDK {
 }
 
 var overideWX = ((sdk, rewrite) => {
-  rewrite('navigateTo', function () {});
+  rewrite('navigateTo', function (opts) {
+  });
 });
 
 const SDKCfgNamespace = 'SDKConfig';
@@ -96,14 +108,14 @@ function overideComponent(sdk, config, isPage) {
     const nativeLoad = config.onLoad;
     const nativeUnload = config.onUnload;
     config.onLoad = createWraper(nativeLoad, function () {
-      sdk.depComponentData.set(this, true);
+      sdk.depComponents.set(this, true);
 
       if (canProcessCfg) {
         this[SDKCfgNamespace] = SDKConfig;
       }
     });
     config.onUnload = createWraper(nativeUnload, function () {
-      sdk.depComponentData.delete(this);
+      sdk.depComponents.delete(this);
 
       if (canProcessCfg) {
         this[SDKCfgNamespace] = null;
@@ -135,13 +147,10 @@ function overideApp(sdk, config) {
   const nativeShow = config.onShow;
   const nativeHide = config.onHide;
   const nativeError = config.onError;
-  const nativeLaunch = config.onLaunch;
-  config.onLaunch = createWraper(nativeLaunch, function () {
-    const duration = sdk.timeEnd('startTime');
-    sdk.report('startTime', duration);
-  });
   config.onShow = createWraper(nativeShow, function () {
     sdk.time('showTime');
+    const duration = sdk.timeEnd('startTime');
+    sdk.report('startTime', duration);
   });
   config.onHide = createWraper(nativeHide, function () {
     const duration = sdk.timeEnd('showTime');
@@ -169,7 +178,14 @@ const nativePage = Page;
 const nativeComponent = Component;
 
 const filterOpts = opts => {
-  return opts;
+  return Object.assign({
+    hooks: {
+      report() {
+        warn('you need defined [report] hook function.');
+      }
+
+    }
+  }, opts);
 };
 
 function index (opts) {
@@ -177,7 +193,7 @@ function index (opts) {
     warn('Can\'t allow repeat initialize.');
   }
 
-  const sdk = new SDK(filterOpts(opts));
+  const sdk = new SDK(filterOpts(opts || {}));
   sdk.time('startTime');
 
   Page = function (config) {
@@ -186,12 +202,12 @@ function index (opts) {
   };
 
   Component = function (config) {
-    config = overideComponent(this, sdk, config);
+    config = overideComponent(sdk, config, false);
     return nativeComponent.call(this, config);
   };
 
   App = function (config) {
-    config = overideApp(this, sdk);
+    config = overideApp(sdk, config);
     return nativeApp.call(this, config);
   };
 

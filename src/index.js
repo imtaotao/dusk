@@ -1,4 +1,5 @@
 import SDK from './core'
+import { warn } from './utils'
 import { overideApp, overideComponent, overideWxClass } from './overide'
 
 let isInitComplete = false
@@ -9,7 +10,16 @@ const nativePage = Page
 const nativeComponent = Component
 
 const filterOpts = opts => {
-  return opts
+  return Object.assign(
+    {
+      hooks: {
+        report () {
+          warn('you need defined [report] hook function.')
+        },
+      },
+    },
+    opts,
+  )
 }
 
 export default function (opts) {
@@ -17,7 +27,7 @@ export default function (opts) {
     warn('Can\'t allow repeat initialize.')
   }
 
-  const sdk = new SDK(filterOpts(opts))
+  const sdk = new SDK(filterOpts(opts || {}))
 
   // 记录项目启动时的时机点
   sdk.time('startTime')
@@ -27,11 +37,11 @@ export default function (opts) {
     return nativePage.call(this, config)
   }
   Component = function (config) {
-    config = overideComponent(this, sdk, config, false)
+    config = overideComponent(sdk, config, false)
     return nativeComponent.call(this, config)
   }
   App = function (config) {
-    config = overideApp(this, sdk, config)
+    config = overideApp(sdk, config)
     return nativeApp.call(this, config)
   }
   // 重写 wx 原生类

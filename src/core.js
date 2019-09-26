@@ -1,10 +1,12 @@
-import { assert, isUndef, callHook } from './utils'
+import Router from './router'
+import { warn, assert, isUndef, callHook } from './utils'
 
 export default class SDK {
   constructor (opts) {
     this.opts = opts
     this.hooks = opts.hooks
     this.depComponents = new Map()
+    this.router = new Router(this)
     this.timeStack = Object.create(null)
   }
 
@@ -12,6 +14,8 @@ export default class SDK {
     if (typeof type === 'string') {
       if (isUndef(this.timeStack[type])) {
         this.timeStack[type] = Date.now()
+      } else {
+        warn(`Timer [${type}] already exists.`, true)
       }
     }
   }
@@ -24,6 +28,8 @@ export default class SDK {
         this.timeStack[type] = null
         return duration
       }
+    } else {
+      warn(`Timer [${type}] does not exist.`, true)
     }
     return null
   }

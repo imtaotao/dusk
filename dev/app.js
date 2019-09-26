@@ -1,4 +1,12 @@
-import SDK from './sdk/wxsdk.esm'
+import createSDK from './sdk/wxsdk.esm'
+
+const SDK = createSDK({
+  hooks: {
+    report (key, val) {
+      console.log(key, val)
+    }
+  }
+})
 console.log(SDK)
 
 //app.js

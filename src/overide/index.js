@@ -26,7 +26,7 @@ export function overideComponent (sdk, config, isPage) {
     config.onLoad = createWraper(
       nativeLoad,
       function () {
-        sdk.depComponentData.set(this, true)
+        sdk.depComponents.set(this, true)
         if (canProcessCfg) {
           this[SDKCfgNamespace] = SDKConfig
           load(sdk, this, SDKConfig, true)
@@ -38,7 +38,7 @@ export function overideComponent (sdk, config, isPage) {
     config.onUnload = createWraper(
       nativeUnload,
       function () {
-        sdk.depComponentData.delete(this)
+        sdk.depComponents.delete(this)
         if (canProcessCfg) {
           unLoad(sdk, this, SDKConfig, true)
           this[SDKCfgNamespace] = null
@@ -83,22 +83,16 @@ export function overideApp (sdk, config) {
   const nativeShow = config.onShow
   const nativeHide = config.onHide
   const nativeError = config.onError
-  const nativeLaunch = config.onLaunch
-
-  config.onLaunch = createWraper(
-    nativeLaunch,
-    function () {
-      // 记录初始化的时长
-      const duration = sdk.timeEnd('startTime')
-      sdk.report('startTime', duration)
-    },
-  )
 
   config.onShow = createWraper(
     nativeShow,
     function () {
       // 记录当前 app 从显示到隐藏，一共停留的时长
       sdk.time('showTime')
+      // 记录初始化的时长
+      const duration = sdk.timeEnd('startTime')
+      sdk.report('startTime', duration)
+      
     },
   )
 

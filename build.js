@@ -78,11 +78,15 @@ const transferfile = (from, desPath) => {
 }
 
 const buildVersion = sourcemap => {
-  Promise.all([
+  const builds = [
     build(esm, false, sourcemap),
     build(cjs, false, sourcemap),
-    build(uglifyCjs, true, sourcemap),
-  ]).then(() => {
+  ]
+  if (!sourcemap) {
+    builds.push(build(uglifyCjs, true, sourcemap))
+  }
+
+  Promise.all(builds).then(() => {
     // transfer esm package to dev folder
     if (fs.existsSync(testLibPath)) {
       if (!fs.existsSync(sdkDir)) {
@@ -102,7 +106,7 @@ const buildVersion = sourcemap => {
 // watch, use in dev and test
 if (process.argv.includes('-w')) {
   let i = 0
-  fs.watch('./src', () => {
+  fs.watch('./src', { recursive: true }, () => {
     console.clear()
     console.log('Rebuild: ' + ++i)
     buildVersion(true)

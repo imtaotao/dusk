@@ -1,2 +1,5 @@
 <!--components/one.wxml-->
-<text>components/one.wxml</text>
+<view>
+  components/one.wxml
+  <Two />
+</view>
