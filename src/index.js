@@ -1,5 +1,6 @@
 import SDK from './core'
 import { warn } from './utils'
+import * as plugins from './plugin'
 import { overideApp, overideComponent, overideWxClass } from './overide'
 
 let isInitComplete = false
@@ -22,7 +23,7 @@ const filterOpts = opts => {
   )
 }
 
-export default function (opts) {
+function initSDK (opts) {
   if (isInitComplete) {
     warn('Can\'t allow repeat initialize.')
   }
@@ -49,4 +50,9 @@ export default function (opts) {
 
   isInitComplete = true
   return sdk
+}
+
+export {
+  plugins,
+  initSDK as default,
 }

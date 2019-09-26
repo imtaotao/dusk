@@ -37,9 +37,9 @@ export function overideComponent (sdk, config, isPage) {
     // 如果当前组件有关于 sdk 的配置就需要处理
     if (canProcessCfg) {
       component[SDKCfgNamespace] = SDKConfig
-      callHook(configHooks, 'onLoad', [sdk, this, opts, SDKConfig, isPage])
+      callHook(configHooks, 'onLoad', [sdk, component, opts, SDKConfig, isPage])
     }
-    callHook(compHooks, name, [sdk, this, opts])
+    callHook(compHooks, name, [sdk, component, opts])
   }
 
   // 包装所有生命周期函数
@@ -90,32 +90,6 @@ export function overideApp (sdk, config) {
       },
     )
   })
-  // config.onShow = createWraper(
-  //   nativeShow,
-  //   function () {
-  //     // 记录当前 app 从显示到隐藏，一共停留的时长
-  //     sdk.time('showTime')
-  //     // 记录初始化的时长
-  //     const duration = sdk.timeEnd('startTime')
-  //     sdk.report('startTime', duration)
-  //   },
-  // )
-
-  // config.onHide = createWraper(
-  //   nativeHide,
-  //   function () {
-  //     const duration = sdk.timeEnd('showTime')
-  //     sdk.report('showTime', duration)
-  //   },
-  // )
-
-  // config.onError = createWraper(
-  //   nativeError,
-  //   function (errMsg) {
-  //     // 自动上报在 app 里面捕获到的错误
-  //     sdk.report('globalCatchError', errMsg)
-  //   },
-  // )
 
   return config
 }

@@ -1,4 +1,4 @@
-import createSDK from './sdk/wxsdk.esm'
+import createSDK, { plugins } from './sdk/wxsdk.esm'
 
 const SDK = createSDK({
   hooks: {
@@ -7,7 +7,8 @@ const SDK = createSDK({
     }
   }
 })
-console.log(SDK)
+
+SDK.use(plugins.firstScrenTime, 'pages/index/index')
 
 //app.js
 App({

@@ -30,9 +30,9 @@ export default class SDK {
         typeof fn === 'function' && fn(duration)
         this.timeStack[type] = null
         return duration
+      } else {
+        warn(`Timer [${type}] does not exist.`, true)
       }
-    } else {
-      warn(`Timer [${type}] does not exist.`, true)
     }
     return null
   }

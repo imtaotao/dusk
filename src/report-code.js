@@ -5,14 +5,17 @@ import { assert } from './utils'
 // 路由类为 3x
 // 优先级从上到下
 export const reportCodes = {
-  'router': 30, // 路由跳转成功
-  'showTime': 21, // 小程序从 show 到 hide 的时长
-  'startTime': 20, // 小程序启动的时长
-  'routerError': 130, // 路由发送错误的时长
   'catchGlobalError': 11, // app 里面捕获到的全局错误
+  'routerError': 130, // 路由发送错误的时长
+
+  'startTime': 20, // 小程序启动的时长
+  'showTime': 21, // 小程序从 show 到 hide 的时长
+  'renderContentTime': 22, // 首屏有内容显示
+
+  'router': 30, // 路由跳转成功
 }
 
 export default function (key) {
-  assert(!(key in reportCodes), `The ${key} is does not exist.`)
+  assert(!(key in reportCodes), `Code [${key}] is does not exist.`)
   return reportCodes[key]
 }
