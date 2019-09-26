@@ -1,6 +1,6 @@
-import overideWX from './overide-wx'
-import { load, onLoad } from './handle-config'
-import { createWraper, isPlainObject, assert } from './utils'
+import overideWX from './wx'
+import { load, unLoad } from '../handle-config'
+import { createWraper, isPlainObject, assert } from '../utils'
 
 export const SDKCfgNamespace = 'SDKConfig'
 
@@ -40,7 +40,7 @@ export function overideComponent (sdk, config, isPage) {
       function () {
         sdk.depComponentData.delete(this)
         if (canProcessCfg) {
-          onLoad(sdk, this, SDKConfig, true)
+          unLoad(sdk, this, SDKConfig, true)
           this[SDKCfgNamespace] = null
         }
       },
@@ -69,7 +69,7 @@ export function overideComponent (sdk, config, isPage) {
       function () {
         sdk.depComponents.delete(this)
         if (canProcessCfg) {
-          onLoad(sdk, this, SDKConfig, true)
+          unLoad(sdk, this, SDKConfig, true)
           this[SDKCfgNamespace] = null
         }
       },

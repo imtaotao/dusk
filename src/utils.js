@@ -1,7 +1,8 @@
 export const warn = (message, isWarn) => {
-  const message = `\n[ReportSDK warn]: ${message}\n\n`
+  message = `\n[ReportSDK warn]: ${message}\n\n`
   if (isWarn) {
     console.warn(message)
+    console.log(121)
     return
   }
   throw new Error(message)

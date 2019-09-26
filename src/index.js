@@ -6,7 +6,7 @@ let isInitComplete = false
 const nativeWX = wx
 const nativeApp = App
 const nativePage = Page
-const nativeComponent = component
+const nativeComponent = Component
 
 const filterOpts = opts => {
   return opts
