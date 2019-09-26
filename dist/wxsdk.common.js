@@ -92,7 +92,7 @@ class SDK {
   report(key, payload) {
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload];
-      this.setTimeout(() => {
+      setTimeout(() => {
         callHook(this.hooks, 'report', [key, this.reportStack[key]]);
         this.reportStack[key] = null;
       }, 200);
@@ -132,6 +132,25 @@ var overideWX = ((sdk, rewrite) => {
   rewrite('redirectTo', opts => handleRouter('redirectTo', sdk, opts));
 });
 
+function onLoad(sdk, currentComponent, SDKConfig, isPage) {
+  const onLoadFns = SDKConfig.onLoad;
+
+  for (const key in onLoadFns) {
+    if (onLoadFns.hasOwnProperty(key) && typeof onLoadFns[key] === 'function') {
+      onLoadFns[key](sdk, currentComponent);
+    }
+  }
+}
+function onShow(sdk, currentComponent, SDKConfig, isPage) {
+  const onShowFns = SDKConfig.onShow;
+
+  for (const key in onShowFns) {
+    if (onShowFns.hasOwnProperty(key) && typeof onShowFns[key] === 'function') {
+      onShowFns[key](sdk, currentComponent);
+    }
+  }
+}
+
 const SDKCfgNamespace = 'SDKConfig';
 function overideComponent(sdk, config, isPage) {
   const SDKConfig = config[SDKCfgNamespace];
@@ -139,12 +158,20 @@ function overideComponent(sdk, config, isPage) {
 
   if (isPage) {
     const nativeLoad = config.onLoad;
+    const nativeOnShow = config.onShow;
     const nativeUnload = config.onUnload;
     config.onLoad = createWraper(nativeLoad, function () {
       sdk.depComponents.set(this, true);
 
       if (canProcessCfg) {
         this[SDKCfgNamespace] = SDKConfig;
+        onLoad(sdk, this, SDKConfig);
+      }
+    });
+    config.onShow = createWraper(nativeOnShow, function () {
+      if (canProcessCfg) {
+        this[SDKCfgNamespace] = SDKConfig;
+        onShow(sdk, this, SDKConfig);
       }
     });
     config.onUnload = createWraper(nativeUnload, function () {
@@ -163,6 +190,7 @@ function overideComponent(sdk, config, isPage) {
 
       if (canProcessCfg) {
         this[SDKCfgNamespace] = SDKConfig;
+        load(sdk, this, SDKConfig, true);
       }
     });
     config.detached = config.lifetimes.detached = createWraper(nativeDetached, function () {
@@ -191,6 +219,7 @@ function overideApp(sdk, config) {
   });
   config.onError = createWraper(nativeError, function (errMsg) {
     sdk.report('globalCatchError', errMsg);
+    callHook(sdk.hooks, 'ddd', [1, 2, 3]);
   });
   return config;
 }

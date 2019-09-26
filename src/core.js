@@ -41,7 +41,7 @@ export default class SDK {
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload]
       // 延迟 200ms 做批量上报
-      this.setTimeout(() => {
+      setTimeout(() => {
         callHook(this.hooks, 'report', [key, this.reportStack[key]])
         this.reportStack[key] = null
       }, 200)

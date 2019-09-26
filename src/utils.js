@@ -17,6 +17,15 @@ export const isUndef = v => {
   return v === null || v === undefined
 }
 
+export const once =  (fn) => {
+  let first = true
+  return function (...args) {
+    if (!first) return
+    first = false
+    fn.apply(this, args)
+  }
+}
+
 export const callHook = (hooks, name, params) => {
   if (hooks && typeof hooks[name] === 'function') {
     return hooks[name].apply(hooks, params)
