@@ -80,7 +80,7 @@ export function overideApp (sdk, config) {
 
   appLifeTime.split(',').forEach(name => {
     config[name] = createWraper(
-      name,
+      config[name],
       function (opts) {
         if (canProcessCfg) {
           this[SDKCfgNamespace] = SDKConfig

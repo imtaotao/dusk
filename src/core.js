@@ -1,5 +1,5 @@
 import Router from './router'
-import code, { reportCodes } from './report-code'
+import { getCode, addCode, reportCodes } from './report-code'
 import { warn, assert, isUndef, callHook, createWraper } from './utils'
 
 export default class SDK {
@@ -37,10 +37,14 @@ export default class SDK {
     return null
   }
 
+  addCode (key, code) {
+    addCode(key, code)
+  }
+
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
   report (key, payload) {
-    key = code(key)
+    key = getCode(key)
 
     if (isUndef(this.reportStack[key])) {
       this.reportStack[key] = [payload]
@@ -56,23 +60,29 @@ export default class SDK {
 
   // 用于重写一个方法
   wraper (obj, name, fn) {
-    assert(!(name in obj), 'The method that needs to be wrapped is not a function')
+    assert(
+      !(name in obj),
+      'The method that needs to be wrapped is not a function',
+    )
     obj[name] = createWraper(obj[name], fn)
   }
 
   // 插件
   use (plugin, ...args) {
-    if (this.installedPlugins.has(plugin)) {
-      return
-    }
+    assert(
+      this.installedPlugins.has(plugin),
+      'Don\'t repeat install plugin',
+    )
+    
+    this.installedPlugins.add(plugin)
 
     args.unshift(this)
+
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args)
-    } else {
-      plugin.apply(null, args)
+      return plugins
     }
-    this.installedPlugins.add(plugin)
+    return plugin.apply(null, args)
   }
 }
 

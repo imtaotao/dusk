@@ -2,9 +2,19 @@ import { isUndef, assert, createWraper } from '../utils'
 
 // 首屏的各种加载时长统计
 export default function (sdk, homePath) {
+  assert(
+    isUndef(homePath),
+    '[firstScreenTime] plugin need a home page path.',
+  )
+
   const hooks = sdk.hooks
   if (isUndef(hooks.app)) hooks.app = {}
   if (isUndef(hooks.page)) hooks.page = {}
+
+  sdk.addCode('startTime', 20) // 小程序从 show 到 hide 的时长
+  sdk.addCode('showTime', 21) // 小程序启动的时长
+  sdk.addCode('renderContentTime', 22)  // 首屏有内容显示
+  sdk.addCode('renderAllContentTime', 23)
 
   // app 里面需要记录的时间
   hooks.app.onShow = createWraper(
@@ -52,5 +62,10 @@ export default function (sdk, homePath) {
         }
       },
     )
+  }
+
+  return () => {
+    const duration = sdk.timeEnd('renderAllContentTime')
+    sdk.report('renderAllContentTime', duration)
   }
 }
