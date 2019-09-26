@@ -176,45 +176,55 @@ var overideWX = ((sdk, rewrite) => {
   rewrite('redirectTo', opts => handleRouter('redirectTo', sdk.router, opts));
 });
 
+var handleConfigHooks = {
+  onLoad() {},
+
+  onUnLoad() {}
+
+};
+
 const SDKCfgNamespace = 'SDKConfig';
+const pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload';
+const componentLifeTime = 'created,attached,ready,moved,detached';
 function overideComponent(sdk, config, isPage) {
   const SDKConfig = config[SDKCfgNamespace];
   const canProcessCfg = isPlainObject(SDKConfig);
 
+  const dispatch = (name, component, opts) => {
+    if (name === 'onLoad' || name === 'attached') {
+      sdk.depComponents.set(component, isPage);
+    }
+
+    if (name === 'onUnload' || name === 'detached') {
+      sdk.depComponents.delete(component);
+    }
+
+    if (canProcessCfg) {
+      component[SDKCfgNamespace] = SDKConfig;
+      callHook(handleConfigHooks, 'onLoad', [sdk, this, opts, SDKConfig, isPage]);
+    }
+
+    const compHooks = isPage ? sdk.hooks.page : sdk.hooks.component;
+    callHook(compHooks, name, [sdk, this, opts]);
+  };
+
   if (isPage) {
-    const nativeLoad = config.onLoad;
-    const nativeUnload = config.onUnload;
-    config.onLoad = createWraper(nativeLoad, function () {
-      sdk.depComponents.set(this, true);
-
-      if (canProcessCfg) {
-        this[SDKCfgNamespace] = SDKConfig;
-      }
-    });
-    config.onUnload = createWraper(nativeUnload, function () {
-      sdk.depComponents.delete(this);
-
-      if (canProcessCfg) {
-        this[SDKCfgNamespace] = null;
-      }
+    pageLifeTime.split(',').forEach(name => {
+      config[name] = createWraper(name, function (opts) {
+        dispatch(name, this, opts);
+      });
     });
   } else {
     config.lifetimes = config.lifetimes || {};
-    const nativeAttached = config.attached || config.lifetimes.attached;
-    const nativeDetached = config.detached || config.lifetimes.detached;
-    config.attached = config.lifetimes.attached = createWraper(nativeAttached, function () {
-      sdk.depComponents.set(this, false);
 
-      if (canProcessCfg) {
-        this[SDKCfgNamespace] = SDKConfig;
-      }
-    });
-    config.detached = config.lifetimes.detached = createWraper(nativeDetached, function () {
-      sdk.depComponents.delete(this);
+    const get = key => config[key] || config.lifetimes[key];
 
-      if (canProcessCfg) {
-        this[SDKCfgNamespace] = null;
-      }
+    const set = (key, fn) => config[key] = config.lifetimes[key] = fn;
+
+    componentLifeTime.split(',').forEach(name => {
+      set(name, createWraper(get(name), function (opts) {
+        dispatch(name, this, opts);
+      }));
     });
   }
 

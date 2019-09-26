@@ -1,116 +1,121 @@
 import overideWX from './wx'
-import { load, unLoad } from '../handle-config'
-import { createWraper, isPlainObject, assert } from '../utils'
+import handleConfigHooks from '../handle-config'
+import { createWraper, isPlainObject, assert, callHook } from '../utils'
 
 export const SDKCfgNamespace = 'SDKConfig'
 
-/**
- * 数据统计的具体实现思路
- *  1. 需要对各种时长进行统计
- *  2. 对页面点击的埋点统计
- *  3. 自定业务逻辑的埋点统计
- *  4. 向外暴露的 api
- */
+// 需要包裹的生命周期
+const pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload'
+const componentLifeTime = 'created,attached,ready,moved,detached'
+const appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound'
 
 // 重写 component 和 page 的 config
 export function overideComponent (sdk, config, isPage) {
   const SDKConfig = config[SDKCfgNamespace]
   const canProcessCfg = isPlainObject(SDKConfig)
 
-  // Page
+  const dispatch = (name, component, opts) => {
+    let compHooks, configHooks
+
+    // 得到钩子对象
+    if (isPage) {
+      compHooks = sdk.hooks.page
+      configHooks = handleConfigHooks.page
+    } else {
+      compHooks = sdk.hooks.component
+      configHooks = handleConfigHooks.component
+    }
+
+    if (name === 'onLoad' || name === 'attached') {
+      // 添加依赖
+      sdk.depComponents.set(component, isPage)
+    }
+    if (name === 'onUnload' || name === 'detached') {
+      sdk.depComponents.delete(component)
+    }
+
+    // 如果当前组件有关于 sdk 的配置就需要处理
+    if (canProcessCfg) {
+      component[SDKCfgNamespace] = SDKConfig
+      callHook(configHooks, 'onLoad', [sdk, this, opts, SDKConfig, isPage])
+    }
+    callHook(compHooks, name, [sdk, this, opts])
+  }
+
+  // 包装所有生命周期函数
+  // 然后调用 hooks，具体的实现内容可以通过插件的形式处理
   if (isPage) {
-    const nativeLoad = config.onLoad
-    const nativeUnload = config.onUnload
-
-    // rewritte load hooks
-    config.onLoad = createWraper(
-      nativeLoad,
-      function () {
-        sdk.depComponents.set(this, true)
-        if (canProcessCfg) {
-          this[SDKCfgNamespace] = SDKConfig
-          load(sdk, this, SDKConfig, true)
-        }
-      },
-    )
-
-    // rewritte unload hook
-    config.onUnload = createWraper(
-      nativeUnload,
-      function () {
-        sdk.depComponents.delete(this)
-        if (canProcessCfg) {
-          unLoad(sdk, this, SDKConfig, true)
-          this[SDKCfgNamespace] = null
-        }
-      },
-    )
+    pageLifeTime.split(',').forEach(name => {
+      config[name] = createWraper(
+        name,
+        function (opts) {
+          dispatch(name, this, opts)
+        },
+      )
+    })
   } else {
     // Component
     config.lifetimes = config.lifetimes || {}
-    const nativeAttached = config.attached || config.lifetimes.attached
-    const nativeDetached = config.detached || config.lifetimes.detached
+    const get = key => config[key] || config.lifetimes[key]
+    const set = (key, fn) => config[key] = config.lifetimes[key] = fn 
 
-    config.attached =
-    config.lifetimes.attached = createWraper(
-      nativeAttached,
-      function () {
-        sdk.depComponents.set(this, false)
-        if (canProcessCfg) {
-          this[SDKCfgNamespace] = SDKConfig
-          load(sdk, this, SDKConfig, true)
-        }
-      },
-    )
-
-    config.detached =
-    config.lifetimes.detached = createWraper(
-      nativeDetached,
-      function () {
-        sdk.depComponents.delete(this)
-        if (canProcessCfg) {
-          unLoad(sdk, this, SDKConfig, true)
-          this[SDKCfgNamespace] = null
-        }
-      },
-    )
+    componentLifeTime.split(',').forEach(name => {
+      set(name,
+        createWraper(
+          get(name),
+          function (opts) {
+            dispatch(name, this, opts)
+          },
+        )  
+      )
+    })
   }
   return config
 }
 
 // 重写 app 的 config
 export function overideApp (sdk, config) {
-  const nativeShow = config.onShow
-  const nativeHide = config.onHide
-  const nativeError = config.onError
+  const SDKConfig = config[SDKCfgNamespace]
+  const canProcessCfg = isPlainObject(SDKConfig)
 
-  config.onShow = createWraper(
-    nativeShow,
-    function () {
-      // 记录当前 app 从显示到隐藏，一共停留的时长
-      sdk.time('showTime')
-      // 记录初始化的时长
-      const duration = sdk.timeEnd('startTime')
-      sdk.report('startTime', duration)
-      
-    },
-  )
+  appLifeTime.split(',').forEach(name => {
+    config[name] = createWraper(
+      name,
+      function (opts) {
+        if (canProcessCfg) {
+          this[SDKCfgNamespace] = SDKConfig
+          callHook(handleConfigHooks.app, name, [sdk, this, opts, SDKConfig, isPage])
+        }
+        callHook(sdk.hooks.app, name, [sdk, this, opts])
+      },
+    )
+  })
+  // config.onShow = createWraper(
+  //   nativeShow,
+  //   function () {
+  //     // 记录当前 app 从显示到隐藏，一共停留的时长
+  //     sdk.time('showTime')
+  //     // 记录初始化的时长
+  //     const duration = sdk.timeEnd('startTime')
+  //     sdk.report('startTime', duration)
+  //   },
+  // )
 
-  config.onHide = createWraper(
-    nativeHide,
-    function () {
-      const duration = sdk.timeEnd('showTime')
-      sdk.report('showTime', duration)
-    },
-  )
+  // config.onHide = createWraper(
+  //   nativeHide,
+  //   function () {
+  //     const duration = sdk.timeEnd('showTime')
+  //     sdk.report('showTime', duration)
+  //   },
+  // )
 
-  config.onError = createWraper(
-    nativeError,
-    function (errMsg) {
-      // 自动上报在 app 里面捕获到的错误
-      sdk.report('globalCatchError', errMsg)
-    },
-  )
+  // config.onError = createWraper(
+  //   nativeError,
+  //   function (errMsg) {
+  //     // 自动上报在 app 里面捕获到的错误
+  //     sdk.report('globalCatchError', errMsg)
+  //   },
+  // )
 
   return config
 }
