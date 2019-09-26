@@ -1,4 +1,4 @@
-import SDK from './wxsdk.esm'
+import SDK from './sdk/wxsdk.esm'
 console.log(SDK)
 
 //app.js
