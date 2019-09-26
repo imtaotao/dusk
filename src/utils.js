@@ -1,5 +1,5 @@
 export const warn = (message, isWarn) => {
-  const message = `\n[ReportSDK warn]: ${message}\n\n`
+  message = `\n[ReportSDK warn]: ${message}\n\n`
   if (isWarn) {
     console.warn(message)
     return
@@ -13,10 +13,15 @@ export const assert = (condition, error) => {
   }
 }
 
+export const isUndef = v => {
+  return v === null || v === undefined
+}
+
 export const callHook = (hooks, name, params) => {
   if (hooks && typeof hooks[name] === 'function') {
     return hooks[name].apply(hooks, params)
   }
+  return null
 }
 
 export const remove = (list, item) => {
@@ -29,7 +34,9 @@ export const remove = (list, item) => {
 export const createWraper = (target, fn) => {
   return function (...args) {
     fn.apply(this, args)
-    return target.apply(this, args)
+    if (typeof target === 'function') {
+      return target.apply(this, args)
+    }
   }
 }
 

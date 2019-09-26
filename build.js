@@ -10,6 +10,7 @@ const resolve = require('rollup-plugin-node-resolve')
 
 const libName = require('./package.json').name
 const testLibPath = path.resolve(__dirname, './dev')
+const sdkDir = path.resolve(testLibPath, './sdk')
 const entryPath = path.resolve(__dirname, './src/index.js')
 const outputPath = filename => path.resolve(__dirname, './dist', filename)
 
@@ -69,19 +70,35 @@ async function build (cfg, needUglify, sourcemap = false) {
 console.clear()
 // delete old build files
 rm('./dist')
+rm(sdkDir)
+
+const transferfile = (from, desPath) => {
+  const readable = fs.createReadStream(from)
+  readable.on('open', () => readable.pipe(fs.createWriteStream(desPath)))
+}
 
 const buildVersion = sourcemap => {
-  Promise.all([
+  const builds = [
     build(esm, false, sourcemap),
     build(cjs, false, sourcemap),
-    build(uglifyCjs, true, sourcemap),
-  ]).then(() => {
+  ]
+  if (!sourcemap) {
+    builds.push(build(uglifyCjs, true, sourcemap))
+  }
+
+  Promise.all(builds).then(() => {
     // transfer esm package to dev folder
     if (fs.existsSync(testLibPath)) {
+      if (!fs.existsSync(sdkDir)) {
+        fs.mkdirSync(sdkDir)
+      }
+
       const sdkPath = esm.output.file
-      const toPath = path.join(testLibPath, `${libName}.esm.js`)
-      const readable = fs.createReadStream(sdkPath)
-      readable.on('open', () => readable.pipe(fs.createWriteStream(toPath)))
+      const desPath = path.join(sdkDir, `${libName}.esm.js`)
+      transferfile(sdkPath, desPath)
+      if (sourcemap) {
+        transferfile(sdkPath + '.map', desPath + '.map')
+      }
     }
   })
 }
@@ -89,7 +106,7 @@ const buildVersion = sourcemap => {
 // watch, use in dev and test
 if (process.argv.includes('-w')) {
   let i = 0
-  fs.watch('./src', () => {
+  fs.watch('./src', { recursive: true }, () => {
     console.clear()
     console.log('Rebuild: ' + ++i)
     buildVersion(true)
