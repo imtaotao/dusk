@@ -1,5 +1,6 @@
+import overideWX from './overide-wx'
 import { load, onLoad } from './handle-config'
-import { createWraper, isPlainObject } from './utils'
+import { createWraper, isPlainObject, assert } from './utils'
 
 export const SDKCfgNamespace = 'SDKConfig'
 
@@ -10,6 +11,8 @@ export const SDKCfgNamespace = 'SDKConfig'
  *  3. 自定业务逻辑的埋点统计
  *  4. 向外暴露的 api
  */
+
+// 重写 component 和 page 的 config
 export function overideComponent (sdk, config, isPage) {
   const SDKConfig = config[SDKCfgNamespace]
   const canProcessCfg = isPlainObject(SDKConfig)
@@ -25,6 +28,7 @@ export function overideComponent (sdk, config, isPage) {
       function () {
         sdk.depComponentData.set(this, true)
         if (canProcessCfg) {
+          this[SDKCfgNamespace] = SDKConfig
           load(sdk, this, SDKConfig, true)
         }
       },
@@ -37,6 +41,7 @@ export function overideComponent (sdk, config, isPage) {
         sdk.depComponentData.delete(this)
         if (canProcessCfg) {
           onLoad(sdk, this, SDKConfig, true)
+          this[SDKCfgNamespace] = null
         }
       },
     )
@@ -50,8 +55,9 @@ export function overideComponent (sdk, config, isPage) {
     config.lifetimes.attached = createWraper(
       nativeAttached,
       function () {
-        sdk.depComponentData.set(this, false)
+        sdk.depComponents.set(this, false)
         if (canProcessCfg) {
+          this[SDKCfgNamespace] = SDKConfig
           load(sdk, this, SDKConfig, true)
         }
       },
@@ -61,9 +67,10 @@ export function overideComponent (sdk, config, isPage) {
     config.lifetimes.detached = createWraper(
       nativeDetached,
       function () {
-        sdk.depComponentData.delete(this)
+        sdk.depComponents.delete(this)
         if (canProcessCfg) {
           onLoad(sdk, this, SDKConfig, true)
+          this[SDKCfgNamespace] = null
         }
       },
     )
@@ -71,6 +78,60 @@ export function overideComponent (sdk, config, isPage) {
   return config
 }
 
+// 重写 app 的 config
 export function overideApp (sdk, config) {
+  const nativeShow = config.onShow
+  const nativeHide = config.onHide
+  const nativeError = config.onError
+  const nativeLaunch = config.onLaunch
+
+  config.onLaunch = createWraper(
+    nativeLaunch,
+    function () {
+      // 记录初始化的时长
+      const duration = sdk.timeEnd('startTime')
+      sdk.report('startTime', duration)
+    },
+  )
+
+  config.onShow = createWraper(
+    nativeShow,
+    function () {
+      // 记录当前 app 从显示到隐藏，一共停留的时长
+      sdk.time('showTime')
+    },
+  )
+
+  config.onHide = createWraper(
+    nativeHide,
+    function () {
+      const duration = sdk.timeEnd('showTime')
+      sdk.report('showTime', duration)
+    },
+  )
+
+  config.onError = createWraper(
+    nativeError,
+    function (errMsg) {
+      // 自动上报在 app 里面捕获到的错误
+      sdk.report('globalCatchError', errMsg)
+    },
+  )
+
   return config
+}
+
+// 重写 wx 类
+export function overideWxClass (sdk, nativeWX) {
+  const overideClass = {}
+
+  overideWX(sdk, (name, fn) => {
+    // 只允许重写，不允许新增
+    // 如果需要新增全局方法，不应该写在这里
+    assert(!(name in nativeWX), 'Only allowed to rewrite.')
+    assert(name in overideClass, `${name} has been rewritten`)
+    overideClass[name] = createWraper(nativeWX[name], fn)
+  })
+
+  wx = Object.assign({}, nativeWX, overideClass)
 }
