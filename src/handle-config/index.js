@@ -1,17 +1,20 @@
-export function load (sdk, component, SDKConfig, isPage) {
-
-}
-
-export function unLoad (sdk, component, SDKConfig, isPage) {
-
-}
-
+// 用来处理 sdkconfig 配置
 export default {
-  onLoad (sdk, this, opts, SDKConfig) {
+  app: {
 
   },
 
-  onUnLoad (sdk, this, opts, SDKConfig) {
+  page: {
+    onLoad (sdk, page, opts, SDKConfig) {
+
+    },
+  
+    onUnLoad (sdk, page, opts, SDKConfig) {
+  
+    },
+  },
+  
+  component: {
 
   },
 }
