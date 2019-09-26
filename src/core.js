@@ -1,6 +1,14 @@
+import {
+  warn,
+  assert,
+  isUndef,
+  callHook,
+  createWraper,
+  isPlainObject,
+} from './utils'
 import Router from './router'
+import handleConfigHooks from './handle-config'
 import { getCode, addCode, reportCodes } from './report-code'
-import { warn, assert, isUndef, callHook, createWraper } from './utils'
 
 export default class SDK {
   constructor (opts) {
@@ -83,6 +91,20 @@ export default class SDK {
       return plugins
     }
     return plugin.apply(null, args)
+  }
+
+  // 调用 setData 会调用此函数
+  // 开发者手动调用也可以
+  update (component) {
+    assert(isUndef(component), 'Missing component')
+    const isPage = this.depComponents.get(component)
+    const canProcessCfg = isPlainObject(component.SDKConfig)
+
+    if (canProcessCfg) {
+      handleConfigHooks.update(this, component, component.SDKConfig, isPage)
+    }
+    
+    callHook(this.hooks, 'update', [this, component, isPage])
   }
 }
 

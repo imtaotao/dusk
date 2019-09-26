@@ -4,11 +4,14 @@ const SDK = createSDK({
   hooks: {
     report (key, val) {
       console.log(key, val)
-    }
+    },
+    update (sdk, component, isPage) {
+      console.log(sdk, component, isPage)
+    },
   }
 })
 
-const complete = SDK.use(plugins.firstScrenTime, 'pages/index/index')
+// const complete = SDK.use(plugins.firstScrenTime, 'pages/index/index')
 
 //app.js
 App({
@@ -18,9 +21,6 @@ App({
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    setTimeout(() => {
-      complete()
-    }, 2000)
     // 登录
     wx.login({
       success: res => {
@@ -48,6 +48,7 @@ App({
       }
     })
   },
+
   globalData: {
     userInfo: null
   }

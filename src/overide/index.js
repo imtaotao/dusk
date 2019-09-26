@@ -29,6 +29,16 @@ export function overideComponent (sdk, config, isPage) {
     if (name === 'onLoad' || name === 'attached') {
       // 添加依赖
       sdk.depComponents.set(component, isPage)
+
+      // 包装 setState 方法，组件的每次更新我们都需要知道
+      const setData = component.setData
+      component.setData = function (data, callback) {
+        setData.call(this, data, 
+          createWraper(callback, () => {
+            sdk.update(this)
+          })
+        )
+      }
     }
     if (name === 'onUnload' || name === 'detached') {
       sdk.depComponents.delete(component)
@@ -47,7 +57,7 @@ export function overideComponent (sdk, config, isPage) {
   if (isPage) {
     pageLifeTime.split(',').forEach(name => {
       config[name] = createWraper(
-        name,
+        config[name],
         function (opts) {
           dispatch(name, this, opts)
         },

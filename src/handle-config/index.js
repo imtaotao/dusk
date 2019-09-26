@@ -17,4 +17,8 @@ export default {
   component: {
 
   },
+
+  update (component, SDKConfig, isPage) {
+
+  },
 }
