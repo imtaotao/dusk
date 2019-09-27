@@ -36,10 +36,8 @@ export default function (sdk, homePath) {
       if (!isUndef(homePath)) {
         sdk.time('renderContentTime')
       }
-
       // 打点记录渲染所有时长的时间，具体的接口在业务中写
       sdk.time('renderAllContentTime')
-
       // 记录当前 app 从显示到隐藏，一共停留的时长
       sdk.time('showTime')
     },
@@ -77,13 +75,13 @@ export default function (sdk, homePath) {
   // 在 SDK 中添加当前这个插件的方法
   sdk.firstScreen = {
     initToRequest: once(() => {
+      const duration = sdk.timeEnd('initToRequestTime')
+      sdk.report('initToRequestTime', duration)
+    }),
+    
+    renderAllTime: once(() => {
       const duration = sdk.timeEnd('renderAllContentTime')
       sdk.report('renderAllContentTime', duration)
     }),
-
-    renderAllTime: once(() => {
-      const duration = sdk.timeEnd('initToRequestTime')
-      sdk.report('initToRequestTime', duration)
-    })
   }
 }

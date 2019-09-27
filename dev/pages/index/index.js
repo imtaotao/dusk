@@ -16,7 +16,12 @@ Page({
     })
   },
   onLoad: function () {
-    console.log(this.SDK)
+    this.SDK.firstScreen.initToRequest()
+
+    setTimeout(() => {
+      this.SDK.firstScreen.renderAllTime()
+    }, 1000)
+
     this.setData({motto: 'fdsfsdfd'})
     if (app.globalData.userInfo) {
       this.setData({

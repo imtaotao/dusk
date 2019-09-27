@@ -332,12 +332,12 @@ function firstScreenTime (sdk, homePath) {
 
   sdk.firstScreen = {
     initToRequest: once(() => {
-      const duration = sdk.timeEnd('renderAllContentTime');
-      sdk.report('renderAllContentTime', duration);
-    }),
-    renderAllTime: once(() => {
       const duration = sdk.timeEnd('initToRequestTime');
       sdk.report('initToRequestTime', duration);
+    }),
+    renderAllTime: once(() => {
+      const duration = sdk.timeEnd('renderAllContentTime');
+      sdk.report('renderAllContentTime', duration);
     })
   };
 }
