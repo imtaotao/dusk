@@ -2,7 +2,6 @@
 node_modules
 dist/wxsdk.common.js.mp
 dist/wxsdk.esm.js.mp
-dev/sdk
 
 # local env files
 .env.local

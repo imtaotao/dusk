@@ -1,7 +1,12 @@
-import { isUndef, assert, createWraper } from '../utils'
+import {
+  once,
+  assert,
+  isUndef,
+  createWraper,
+} from '../utils'
 
 // 首屏的各种加载时长统计
-export default function (sdk, homePath, callback) {
+export default function (sdk, homePath) {
   assert(
     isUndef(homePath),
     'Need a home page path.\n\n --- from [firstScreenTime] plugin\n',
@@ -69,16 +74,16 @@ export default function (sdk, homePath, callback) {
     )
   }
 
-  // 不可控的埋点暴露给外部
-  if (typeof callback === 'function') {
-    const initToRequest = () => {
+  // 在 SDK 中添加当前这个插件的方法
+  sdk.firstScreen = {
+    initToRequest: once(() => {
       const duration = sdk.timeEnd('renderAllContentTime')
       sdk.report('renderAllContentTime', duration)
-    }
-    const renderAllTime = () => {
+    }),
+
+    renderAllTime: once(() => {
       const duration = sdk.timeEnd('initToRequestTime')
       sdk.report('initToRequestTime', duration)
-    }
-    callback(initToRequest, renderAllTime)
+    })
   }
 }

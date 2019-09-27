@@ -16,6 +16,7 @@ Page({
     })
   },
   onLoad: function () {
+    console.log(this.SDK)
     this.setData({motto: 'fdsfsdfd'})
     if (app.globalData.userInfo) {
       this.setData({

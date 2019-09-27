@@ -13,6 +13,16 @@ export const assert = (condition, error) => {
   }
 }
 
+export const once = fn => {
+  let called = false
+  return function () {
+    if (!called) {
+      called = true
+      return fn.apply(this, arguments)
+    }
+  }
+}
+
 export const isUndef = v => {
   return v === null || v === undefined
 }

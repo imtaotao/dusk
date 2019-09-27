@@ -17,6 +17,15 @@ const assert = (condition, error) => {
     warn(error);
   }
 };
+const once = fn => {
+  let called = false;
+  return function () {
+    if (!called) {
+      called = true;
+      return fn.apply(this, arguments);
+    }
+  };
+};
 const isUndef = v => {
   return v === null || v === undefined;
 };
@@ -284,7 +293,7 @@ function autoReport (sdk, opts) {
   }
 }
 
-function firstScrenTime (sdk, homePath, callback) {
+function firstScreenTime (sdk, homePath) {
   assert(isUndef(homePath), 'Need a home page path.\n\n --- from [firstScreenTime] plugin\n');
   const hooks = sdk.hooks;
   if (isUndef(hooks.app)) hooks.app = {};
@@ -321,26 +330,23 @@ function firstScrenTime (sdk, homePath, callback) {
     });
   }
 
-  if (typeof callback === 'function') {
-    const initToRequest = () => {
+  sdk.firstScreen = {
+    initToRequest: once(() => {
       const duration = sdk.timeEnd('renderAllContentTime');
       sdk.report('renderAllContentTime', duration);
-    };
-
-    const renderAllTime = () => {
+    }),
+    renderAllTime: once(() => {
       const duration = sdk.timeEnd('initToRequestTime');
       sdk.report('initToRequestTime', duration);
-    };
-
-    callback(initToRequest, renderAllTime);
-  }
+    })
+  };
 }
 
 
 
 var index = /*#__PURE__*/Object.freeze({
   autoReport: autoReport,
-  firstScrenTime: firstScrenTime
+  firstScreenTime: firstScreenTime
 });
 
 const handleRouter = (routerType, router, opts = {}) => {
@@ -386,6 +392,7 @@ function overideComponent(sdk, config, isPage) {
     }
 
     if (name === 'onLoad' || name === 'attached') {
+      component.SDK = sdk;
       sdk.depComponents.set(component, isPage);
       const setData = component.setData;
 
@@ -500,3 +507,4 @@ function initSDK(opts) {
 
 exports.default = initSDK;
 exports.plugins = index;
+//# sourceMappingURL=wxsdk.common.js.map
