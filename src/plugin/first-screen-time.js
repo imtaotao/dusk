@@ -57,17 +57,16 @@ export default function (sdk) {
   )
 
   // 首页渲染完成的时间
-  if (!isUndef(entryPath)) {
     hooks.page.onReady = createWraper(
       hooks.app.onReady,
       (sdk, page) => {
+        console.log(entryPath)
         if (entryPath === page.route) {
           const duration = sdk.timeEnd('renderContentTime')
           sdk.report('renderContentTime', duration)
         }
       },
     )
-  }
 
   // 在 SDK 中添加当前这个插件的方法
   sdk.firstScreen = {
