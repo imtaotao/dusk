@@ -1,16 +1,21 @@
-import createSDK from './sdk/wxsdk.esm'
+import createSDK, { plugins } from './sdk/wxsdk.esm'
 
 const SDK = createSDK({
   hooks: {
     report (key, val) {
       console.log(key, val)
-    }
+    },
+    update (sdk, component, isPage) {
+      console.log(sdk, component, isPage)
+    },
   }
 })
-console.log(SDK)
+
+// const complete = SDK.use(plugins.firstScrenTime, 'pages/index/index')
 
 //app.js
 App({
+
   onLaunch: function () {
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
@@ -44,6 +49,7 @@ App({
       }
     })
   },
+
   globalData: {
     userInfo: null
   }

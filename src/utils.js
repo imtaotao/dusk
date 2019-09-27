@@ -1,5 +1,5 @@
 export const warn = (message, isWarn) => {
-  message = `\n[ReportSDK warn]: ${message}\n\n`
+  message = `\n[SDK warn]: ${message}\n\n`
   if (isWarn) {
     console.warn(message)
     return
@@ -15,6 +15,10 @@ export const assert = (condition, error) => {
 
 export const isUndef = v => {
   return v === null || v === undefined
+}
+
+export const isFn = f => {
+  return typeof f === 'function'
 }
 
 export const once =  (fn) => {

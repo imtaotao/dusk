@@ -11,7 +11,11 @@ Component({
    * 组件的初始数据
    */
   data: {
+    a: 1
+  },
 
+  attached () {
+    this.setData()
   },
 
   /**

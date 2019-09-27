@@ -18,7 +18,9 @@ Page({
             // }
         },
         update: {
-
+          update1() {
+            console.log('update')
+          }
         }
     },
     data: {

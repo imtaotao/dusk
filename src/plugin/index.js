@@ -1,0 +1,1 @@
+export { default as firstScrenTime } from './first-scren-time'
