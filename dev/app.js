@@ -1,8 +1,9 @@
 import createSDK, { plugins } from './sdk/wxsdk.esm'
 const SDK = createSDK()
 
-SDK.addPlugin(plugins.firstScreenTime, 'pages/index/index')
+SDK.addPlugin(plugins.firstScreenTime)
 SDK.addPlugin(plugins.autoReport, {
+  projectName: 'mp',
   uid: () => 'testUserId',
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
@@ -10,6 +11,7 @@ SDK.addPlugin(plugins.autoReport, {
 //app.js
 App({
   onLaunch: function () {
+    console.log('launch')
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
@@ -40,6 +42,13 @@ App({
           })
         }
       }
+    })
+  },
+
+  onShow () {
+    console.log('appshow')
+    setTimeout(() => {
+      console.log(SDK.router.getCurrentPage())
     })
   },
 

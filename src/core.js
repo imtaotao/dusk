@@ -1,4 +1,5 @@
 import {
+  once,
   warn,
   assert,
   isUndef,
@@ -20,6 +21,20 @@ export default class SDK {
     this.reportCodes = reportCodes
     this.installedPlugins = new Set()
     this.timeStack = Object.create(null)
+  }
+
+  // 创建一个只调用一次的函数
+  once (fn) {
+    return once(fn)
+  }
+
+  // 用于包装一个方法
+  wraper (target, fn) {
+    return createWraper(target, fn)
+  }
+
+  addCode (key, code) {
+    addCode(key, code)
   }
 
   time (type) {
@@ -46,9 +61,7 @@ export default class SDK {
     return null
   }
 
-  addCode (key, code) {
-    addCode(key, code)
-  }
+  
 
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
@@ -65,11 +78,6 @@ export default class SDK {
     } else {
       this.reportStack[key].push(payload)
     }
-  }
-
-  // 用于包装一个方法
-  wraper (target, fn) {
-    return createWraper(target, fn)
   }
 
   // 插件

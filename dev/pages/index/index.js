@@ -15,7 +15,11 @@ Page({
       url: '../logs/logs'
     })
   },
+  onShow () {
+    console.log('pageshow')
+  },
   onLoad: function () {
+    console.log('pageload')
     this.SDK.firstScreen.initToRequest()
 
     setTimeout(() => {

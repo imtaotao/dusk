@@ -1,15 +1,19 @@
 import { assert, isUndef, createWraper } from '../utils'
 
 // 自动上报的插件
-export default function (sdk, opts) {
-  const { url, header = {} } = opts || {}
-  const allowMethods = ['GET', 'POST']
-
+export default function (sdk, opts = {}) {
   assert(
-    typeof url !== 'string',
+    typeof opts.url !== 'string',
     'The request url must be a string.\n\n --- from [autoReport] plugin\n',
   )
 
+  assert(
+    !('projectName' in opts),
+    'Must defined [projectName] field.'
+  )
+
+  // 允许上报的方法
+  const allowMethods = ['GET', 'POST']
   // 这些是固定需要上报的数据
   const genData = bm => {
     const uid = typeof opts.uid === 'function' ? opts.uid() : ''
@@ -17,8 +21,8 @@ export default function (sdk, opts) {
       bm,
       uid,
       tp: 0,
-      sc: 'mp',
       sp: 'stat',
+      sc: opts.projectName,
       t: Date.parse(new Date()),
       unid: 'za-ad10c-16d630b0690',
       p: sdk.router.getCurrentPage().route,
@@ -87,10 +91,10 @@ export default function (sdk, opts) {
       // 所以需要发送多条请求，等接口更改
       data.forEach(item => {
         wx.request({
-          url,
           method,
-          header,
           data: item,
+          url: opts.url,
+          header: opts.header || {},
         })
       })
     }
@@ -99,7 +103,7 @@ export default function (sdk, opts) {
   if (
     isUndef(sdk.hooks.report) ||
     typeof sdk.hooks.report === 'function' &&
-    sdk.hooks.report.name === 'defaultReport'
+    sdk.hooks.report.name !== 'defaultReport'
   ) {
     sdk.hooks.report = createWraper(sdk.hooks.report, wraperReprot)
   } else {

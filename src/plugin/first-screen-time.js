@@ -1,21 +1,16 @@
 import {
   once,
-  assert,
   isUndef,
   createWraper,
 } from '../utils'
 
 // 首屏的各种加载时长统计
-export default function (sdk, homePath) {
-  assert(
-    isUndef(homePath),
-    'Need a home page path.\n\n --- from [firstScreenTime] plugin\n',
-  )
-
+export default function (sdk) {
+  let entryPath = null
   const hooks = sdk.hooks
   if (isUndef(hooks.app)) hooks.app = {}
   if (isUndef(hooks.page)) hooks.page = {}
-  
+
   sdk.addCode('initToRequestTime', 20) // 初始化到发起请求的时间
   sdk.addCode('showTime', 21) // 小程序启动的时长
   sdk.addCode('renderContentTime', 22)  // 首屏有内容显示
@@ -24,7 +19,9 @@ export default function (sdk, homePath) {
   // app 里面需要记录的时间
   hooks.app.onLaunch = createWraper(
     hooks.app.onLaunch,
-    () => {
+    (sdk, app, opts) => {
+      // 记录当前启动是哪个页面
+      entryPath = opts.path
       // 记录初始化的时间
       sdk.time('initToRequestTime')
     },
@@ -33,7 +30,7 @@ export default function (sdk, homePath) {
   hooks.app.onShow = createWraper(
     hooks.app.onShow,
     () => {
-      if (!isUndef(homePath)) {
+      if (!isUndef(entryPath)) {
         sdk.time('renderContentTime')
       }
       // 打点记录渲染所有时长的时间，具体的接口在业务中写
@@ -60,11 +57,11 @@ export default function (sdk, homePath) {
   )
 
   // 首页渲染完成的时间
-  if (!isUndef(homePath)) {
+  if (!isUndef(entryPath)) {
     hooks.page.onReady = createWraper(
       hooks.app.onReady,
       (sdk, page) => {
-        if (homePath === page.route) {
+        if (entryPath === page.route) {
           const duration = sdk.timeEnd('renderContentTime')
           sdk.report('renderContentTime', duration)
         }

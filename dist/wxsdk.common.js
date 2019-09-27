@@ -120,6 +120,18 @@ class SDK {
     this.timeStack = Object.create(null);
   }
 
+  once(fn) {
+    return once(fn);
+  }
+
+  wraper(target, fn) {
+    return createWraper(target, fn);
+  }
+
+  addCode(key, code) {
+    addCode(key, code);
+  }
+
   time(type) {
     if (typeof type === 'string') {
       if (isUndef(this.timeStack[type])) {
@@ -145,10 +157,6 @@ class SDK {
     return null;
   }
 
-  addCode(key, code) {
-    addCode(key, code);
-  }
-
   report(key, payload) {
     key = getCode(key);
 
@@ -161,10 +169,6 @@ class SDK {
     } else {
       this.reportStack[key].push(payload);
     }
-  }
-
-  wraper(target, fn) {
-    return createWraper(target, fn);
   }
 
   addPlugin(plugin, ...args) {
@@ -194,13 +198,10 @@ class SDK {
 
 }
 
-function autoReport (sdk, opts) {
-  const {
-    url,
-    header = {}
-  } = opts || {};
+function autoReport (sdk, opts = {}) {
+  assert(typeof opts.url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
+  assert(!('projectName' in opts), 'Must defined [projectName] field.');
   const allowMethods = ['GET', 'POST'];
-  assert(typeof url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
 
   const genData = bm => {
     const uid = typeof opts.uid === 'function' ? opts.uid() : '';
@@ -208,8 +209,8 @@ function autoReport (sdk, opts) {
       bm,
       uid,
       tp: 0,
-      sc: 'mp',
       sp: 'stat',
+      sc: opts.projectName,
       t: Date.parse(new Date()),
       unid: 'za-ad10c-16d630b0690',
       p: sdk.router.getCurrentPage().route
@@ -277,24 +278,24 @@ function autoReport (sdk, opts) {
     if (allowMethods.includes(method) && data.length > 0) {
       data.forEach(item => {
         wx.request({
-          url,
           method,
-          header,
-          data: item
+          data: item,
+          url: opts.url,
+          header: opts.header || {}
         });
       });
     }
   }
 
-  if (isUndef(sdk.hooks.report) || typeof sdk.hooks.report === 'function' && sdk.hooks.report.name === 'defaultReport') {
+  if (isUndef(sdk.hooks.report) || typeof sdk.hooks.report === 'function' && sdk.hooks.report.name !== 'defaultReport') {
     sdk.hooks.report = createWraper(sdk.hooks.report, wraperReprot);
   } else {
     sdk.hooks.report = wraperReprot;
   }
 }
 
-function firstScreenTime (sdk, homePath) {
-  assert(isUndef(homePath), 'Need a home page path.\n\n --- from [firstScreenTime] plugin\n');
+function firstScreenTime (sdk) {
+  let entryPath = null;
   const hooks = sdk.hooks;
   if (isUndef(hooks.app)) hooks.app = {};
   if (isUndef(hooks.page)) hooks.page = {};
@@ -302,11 +303,12 @@ function firstScreenTime (sdk, homePath) {
   sdk.addCode('showTime', 21);
   sdk.addCode('renderContentTime', 22);
   sdk.addCode('renderAllContentTime', 23);
-  hooks.app.onLaunch = createWraper(hooks.app.onLaunch, () => {
+  hooks.app.onLaunch = createWraper(hooks.app.onLaunch, (sdk, app, opts) => {
+    entryPath = opts.path;
     sdk.time('initToRequestTime');
   });
   hooks.app.onShow = createWraper(hooks.app.onShow, () => {
-    if (!isUndef(homePath)) {
+    if (!isUndef(entryPath)) {
       sdk.time('renderContentTime');
     }
 
@@ -321,9 +323,9 @@ function firstScreenTime (sdk, homePath) {
     sdk.report('catchGlobalError', errMsg);
   });
 
-  if (!isUndef(homePath)) {
+  if (!isUndef(entryPath)) {
     hooks.page.onReady = createWraper(hooks.app.onReady, (sdk, page) => {
-      if (homePath === page.route) {
+      if (entryPath === page.route) {
         const duration = sdk.timeEnd('renderContentTime');
         sdk.report('renderContentTime', duration);
       }
@@ -507,4 +509,3 @@ function initSDK(opts) {
 
 exports.default = initSDK;
 exports.plugins = index;
-//# sourceMappingURL=wxsdk.common.js.map
