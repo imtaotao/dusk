@@ -162,7 +162,7 @@ class SDK {
         callHook(this.hooks, 'report', [key, this.reportStack[key]]);
         this.reportStack[key] = null;
       }, 200);
-    } else {
+    } else if (!isUndef(payload)) {
       this.reportStack[key].push(payload);
     }
   }
@@ -318,14 +318,12 @@ function firstScreenTime (sdk) {
   hooks.app.onError = createWraper(hooks.app.onError, errMsg => {
     sdk.report('catchGlobalError', errMsg);
   });
-  hooks.page.onReady = createWraper(hooks.app.onReady, (sdk, page) => {
-    console.log(entryPath);
-
+  hooks.page.onReady = createWraper(hooks.app.onReady, once((sdk, page) => {
     if (entryPath === page.route) {
       const duration = sdk.timeEnd('renderContentTime');
       sdk.report('renderContentTime', duration);
     }
-  });
+  }));
   sdk.firstScreen = {
     initToRequest: once(() => {
       const duration = sdk.timeEnd('initToRequestTime');

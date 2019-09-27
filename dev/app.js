@@ -3,7 +3,7 @@ const SDK = createSDK()
 
 SDK.addPlugin(plugins.firstScreenTime)
 SDK.addPlugin(plugins.autoReport, {
-  projectName: 'mp',
+  projectName: 'mpp',
   uid: () => 'testUserId',
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })

@@ -75,7 +75,7 @@ export default class SDK {
         callHook(this.hooks, 'report', [key, this.reportStack[key]])
         this.reportStack[key] = null
       }, 200)
-    } else {
+    } else if (!isUndef(payload)) {
       this.reportStack[key].push(payload)
     }
   }
