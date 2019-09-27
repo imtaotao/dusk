@@ -1,18 +1,9 @@
 import createSDK, { plugins } from './sdk/wxsdk.esm'
-
-const SDK = createSDK({
-  hooks: {
-    report (key, val) {
-      console.log(key, val)
-    },
-    update (sdk, component, isPage) {
-      console.log(sdk, component, isPage)
-    },
-  }
-})
+const SDK = createSDK()
 
 SDK.addPlugin(plugins.firstScreenTime, 'pages/index/index')
 SDK.addPlugin(plugins.autoReport, {
+  uid: () => 'testUserId',
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
 
