@@ -21,6 +21,9 @@ Page({
           update1() {
             console.log('update')
           }
+        },
+        updateSetData: {
+          
         }
     },
     data: {
@@ -76,5 +79,6 @@ Page({
         wx.navigateTo({
             url: '/pages/logs/logs'
         })
+        
     }
 })

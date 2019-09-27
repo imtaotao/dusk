@@ -1,3 +1,7 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const warn = (message, isWarn) => {
   message = `\n[SDK warn]: ${message}\n\n`;
 
@@ -13,11 +17,17 @@ const assert = (condition, error) => {
     warn(error);
   }
 };
+const once = fn => {
+  let called = false;
+  return function () {
+    if (!called) {
+      called = true;
+      return fn.apply(this, arguments);
+    }
+  };
+};
 const isUndef = v => {
   return v === null || v === undefined;
-};
-const isFn = f => {
-  return typeof f === 'function';
 };
 const callHook = (hooks, name, params) => {
   if (hooks && typeof hooks[name] === 'function') {
@@ -63,53 +73,24 @@ class Router {
     this.sdk.report('routerError', payload);
   }
 
+  getCurrentPage() {
+    const pages = getCurrentPages();
+    return Array.isArray(pages) && pages.length > 0 ? pages[pages.length - 1] : null;
+  }
+
 }
 
 var handleConfigHooks = {
   app: {},
   page: {
-    onLoad(sdk, page, opts, SDKConfig) {
-      const onLoadFns = SDKConfig.onLoad;
-
-      for (const key in onLoadFns) {
-        if (onLoadFns.hasOwnProperty(key) && typeof onLoadFns[key] === 'function') {
-          onLoadFns[key](sdk, page);
-        }
-      }
-    },
-
-    onShow(sdk, page, opts, SDKConfig) {
-      const onShowFns = SDKConfig.onShow;
-
-      for (const key in onShowFns) {
-        if (onShowFns.hasOwnProperty(key) && typeof onShowFns[key] === 'function') {
-          onShowFns[key](sdk, page);
-        }
-      }
-    },
+    onLoad(sdk, page, opts, SDKConfig) {},
 
     onUnLoad(sdk, page, opts, SDKConfig) {}
 
   },
   component: {},
 
-  update(fnName, params, sdk, SDKConfig, component, isPage) {
-    if (typeof SDKConfig.update !== 'object') return;
-    params = isUndef(params) ? {} : params;
-
-    if (isUndef(fnName)) {
-      for (const key in SDKConfig.update) {
-        if (SDKConfig.update.hasOwnProperty(key)) {
-          SDKConfig.update[key](params);
-        }
-      }
-
-      return;
-    }
-
-    assert(!isFn(SDKConfig.update[fnName]), `Can't find function: ${fnName}`);
-    SDKConfig.update[fnName](params);
-  }
+  update(component, SDKConfig, isPage) {}
 
 };
 
@@ -134,8 +115,21 @@ class SDK {
     this.hooks = opts.hooks;
     this.depComponents = new Map();
     this.router = new Router(this);
+    this.reportCodes = reportCodes;
     this.installedPlugins = new Set();
     this.timeStack = Object.create(null);
+  }
+
+  once(fn) {
+    return once(fn);
+  }
+
+  wraper(target, fn) {
+    return createWraper(target, fn);
+  }
+
+  addCode(key, code) {
+    addCode(key, code);
   }
 
   time(type) {
@@ -163,10 +157,6 @@ class SDK {
     return null;
   }
 
-  addCode(key, code) {
-    addCode(key, code);
-  }
-
   report(key, payload) {
     key = getCode(key);
 
@@ -176,96 +166,186 @@ class SDK {
         callHook(this.hooks, 'report', [key, this.reportStack[key]]);
         this.reportStack[key] = null;
       }, 200);
-    } else {
+    } else if (!isUndef(payload)) {
       this.reportStack[key].push(payload);
     }
   }
 
-  wraper(obj, name, fn) {
-    assert(!(name in obj), 'The method that needs to be wrapped is not a function');
-    obj[name] = createWraper(obj[name], fn);
-  }
-
-  use(plugin, ...args) {
+  addPlugin(plugin, ...args) {
     assert(this.installedPlugins.has(plugin), 'Don\'t repeat install plugin');
-    this.installedPlugins.add(plugin);
     args.unshift(this);
 
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args);
-      return plugins;
+    } else {
+      plugin.apply(null, args);
     }
 
-    return plugin.apply(null, args);
+    this.installedPlugins.add(plugin);
   }
 
-  update(component, fnName, params) {
+  update(component) {
     assert(isUndef(component), 'Missing component');
     const isPage = this.depComponents.get(component);
     const canProcessCfg = isPlainObject(component.SDKConfig);
 
     if (canProcessCfg) {
-      handleConfigHooks.update(fnName, params, this, component.SDKConfig, component, isPage);
+      handleConfigHooks.update(this, component, component.SDKConfig, isPage);
     }
 
     callHook(this.hooks, 'update', [this, component, isPage]);
   }
 
 }
-SDK._reportCodes = reportCodes;
 
-function firstScrenTime (sdk, homePath) {
-  assert(isUndef(homePath), '[firstScreenTime] plugin need a home page path.');
+function autoReport (sdk, opts = {}) {
+  assert(typeof opts.url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
+  assert(!('projectName' in opts), 'Must defined [projectName] field.');
+  const allowMethods = ['GET', 'POST'];
+
+  const genData = bm => {
+    const uid = typeof opts.uid === 'function' ? opts.uid() : '';
+    return {
+      bm,
+      uid,
+      tp: 0,
+      sp: 'stat',
+      sc: opts.projectName,
+      t: Date.parse(new Date()),
+      unid: 'za-ad10c-16d630b0690',
+      p: sdk.router.getCurrentPage().route
+    };
+  };
+
+  function wraperReprot(key, val) {
+    let data = [];
+    let method = 'GET';
+
+    switch (key) {
+      case 11:
+        break;
+
+      case 130:
+        break;
+
+      case 21:
+        break;
+
+      case 20:
+        data = val.map(initToRequestTime => ({ ...genData('time'),
+          exd: {
+            initToRequestTime
+          }
+        }));
+        break;
+
+      case 22:
+        data = val.map(renderContentTime => ({ ...genData('time'),
+          exd: {
+            renderContentTime
+          }
+        }));
+        break;
+
+      case 23:
+        data = val.map(renderAllContentTime => ({ ...genData('time'),
+          exd: {
+            renderAllContentTime
+          }
+        }));
+        break;
+
+      case 30:
+        break;
+
+      default:
+        if (typeof opts.callback === 'function') {
+          const {
+            data: _d,
+            method: _m,
+            module: _bm
+          } = opts.callback(key, val);
+          assert(!Array.isArray(data), '[data] must be an Array\n\n --- from [autoReport] plugin\n');
+          assert(typeof _bm !== 'string', '[module] must be an String\n\n --- from [autoReport] plugin\n');
+          method = _m;
+          data = _d.map(exd => ({ ...genData(_bm),
+            exd
+          }));
+        }
+
+    }
+
+    if (allowMethods.includes(method) && data.length > 0) {
+      data.forEach(item => {
+        wx.request({
+          method,
+          data: item,
+          url: opts.url,
+          header: opts.header || {}
+        });
+      });
+    }
+  }
+
+  if (isUndef(sdk.hooks.report) || typeof sdk.hooks.report === 'function' && sdk.hooks.report.name !== 'defaultReport') {
+    sdk.hooks.report = createWraper(sdk.hooks.report, wraperReprot);
+  } else {
+    sdk.hooks.report = wraperReprot;
+  }
+}
+
+function firstScreenTime (sdk) {
+  let entryPath = null;
   const hooks = sdk.hooks;
   if (isUndef(hooks.app)) hooks.app = {};
   if (isUndef(hooks.page)) hooks.page = {};
-  sdk.addCode('startTime', 20);
+  sdk.addCode('initToRequestTime', 20);
   sdk.addCode('showTime', 21);
   sdk.addCode('renderContentTime', 22);
   sdk.addCode('renderAllContentTime', 23);
-  hooks.app.onShow = createWraper(hooks.app.onShow, function () {
-    if (!isUndef(homePath)) {
+  hooks.app.onLaunch = createWraper(hooks.app.onLaunch, (sdk, app, opts) => {
+    entryPath = opts.path;
+    sdk.time('initToRequestTime');
+  });
+  hooks.app.onShow = createWraper(hooks.app.onShow, () => {
+    if (!isUndef(entryPath)) {
       sdk.time('renderContentTime');
     }
 
     sdk.time('renderAllContentTime');
     sdk.time('showTime');
-    const duration = sdk.timeEnd('startTime');
-    sdk.report('startTime', duration);
   });
-  hooks.app.onHide = createWraper(hooks.app.onHide, function () {
+  hooks.app.onHide = createWraper(hooks.app.onHide, () => {
     const duration = sdk.timeEnd('showTime');
     sdk.report('showTime', duration);
   });
-  hooks.app.onError = createWraper(hooks.app.onError, function (errMsg) {
+  hooks.app.onError = createWraper(hooks.app.onError, errMsg => {
     sdk.report('catchGlobalError', errMsg);
   });
-
-  if (!isUndef(homePath)) {
-    hooks.page.onReady = createWraper(hooks.app.onReady, function (sdk, page) {
-      if (homePath === page.route) {
-        const duration = sdk.timeEnd('renderContentTime');
-        sdk.report('renderContentTime', duration);
-      }
-    });
-  }
-
-  return () => {
-    const duration = sdk.timeEnd('renderAllContentTime');
-    sdk.report('renderAllContentTime', duration);
+  hooks.page.onReady = createWraper(hooks.app.onReady, once((sdk, page) => {
+    if (entryPath === page.route) {
+      const duration = sdk.timeEnd('renderContentTime');
+      sdk.report('renderContentTime', duration);
+    }
+  }));
+  sdk.firstScreen = {
+    initToRequest: once(() => {
+      const duration = sdk.timeEnd('initToRequestTime');
+      sdk.report('initToRequestTime', duration);
+    }),
+    renderAllTime: once(() => {
+      const duration = sdk.timeEnd('renderAllContentTime');
+      sdk.report('renderAllContentTime', duration);
+    })
   };
 }
 
 
 
 var index = /*#__PURE__*/Object.freeze({
-  firstScrenTime: firstScrenTime
+  autoReport: autoReport,
+  firstScreenTime: firstScreenTime
 });
-
-const getCurrentPagePath = () => {
-  const pages = getCurrentPages();
-  return Array.isArray(pages) && pages.length > 0 ? pages[pages.length - 1].route : null;
-};
 
 const handleRouter = (routerType, router, opts = {}) => {
   const {
@@ -274,7 +354,7 @@ const handleRouter = (routerType, router, opts = {}) => {
   } = opts;
   const info = {
     to: opts.url,
-    from: getCurrentPagePath()
+    from: router.getCurrentPage().route
   };
   opts.success = createWraper(success, () => router.report(routerType, info));
   opts.fail = createWraper(fail, error => {
@@ -310,6 +390,7 @@ function overideComponent(sdk, config, isPage) {
     }
 
     if (name === 'onLoad' || name === 'attached') {
+      component.SDK = sdk;
       sdk.depComponents.set(component, isPage);
       const setData = component.setData;
 
@@ -388,10 +469,9 @@ const nativeComponent = Component;
 const filterOpts = opts => {
   return Object.assign({
     hooks: {
-      report() {
+      report: function defaultReport() {
         warn('you need defined [report] hook function.');
       }
-
     }
   }, opts);
 };
@@ -402,7 +482,6 @@ function initSDK(opts) {
   }
 
   const sdk = new SDK(filterOpts(opts || {}));
-  sdk.time('startTime');
 
   Page = function (config) {
     config = overideComponent(sdk, config, true);
@@ -424,6 +503,5 @@ function initSDK(opts) {
   return sdk;
 }
 
-export default initSDK;
-export { index as plugins };
-//# sourceMappingURL=wxsdk.esm.js.map
+exports.default = initSDK;
+exports.plugins = index;

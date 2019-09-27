@@ -1,4 +1,5 @@
 import {
+  once,
   warn,
   assert,
   isUndef,
@@ -17,11 +18,26 @@ export default class SDK {
     this.hooks = opts.hooks
     this.depComponents = new Map()
     this.router = new Router(this)
+    this.reportCodes = reportCodes
     this.installedPlugins = new Set()
     this.timeStack = Object.create(null)
   }
 
-  time(type) {
+  // 创建一个只调用一次的函数
+  once (fn) {
+    return once(fn)
+  }
+
+  // 用于包装一个方法
+  wraper (target, fn) {
+    return createWraper(target, fn)
+  }
+
+  addCode (key, code) {
+    addCode(key, code)
+  }
+
+  time (type) {
     if (typeof type === 'string') {
       if (isUndef(this.timeStack[type])) {
         this.timeStack[type] = Date.now()
@@ -45,9 +61,6 @@ export default class SDK {
     return null
   }
 
-  addCode(key, code) {
-    addCode(key, code)
-  }
 
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
@@ -61,36 +74,25 @@ export default class SDK {
         callHook(this.hooks, 'report', [key, this.reportStack[key]])
         this.reportStack[key] = null
       }, 200)
-    } else {
+    } else if (!isUndef(payload)) {
       this.reportStack[key].push(payload)
     }
   }
 
-  // 用于重写一个方法
-  wraper(obj, name, fn) {
-    assert(
-        !(name in obj),
-        'The method that needs to be wrapped is not a function',
-    )
-    obj[name] = createWraper(obj[name], fn)
-  }
-
   // 插件
-  use(plugin, ...args) {
+  addPlugin (plugin, ...args) {
     assert(
         this.installedPlugins.has(plugin),
         'Don\'t repeat install plugin',
     )
 
-    this.installedPlugins.add(plugin)
-
     args.unshift(this)
-
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args)
-      return plugins
+    } else {
+      plugin.apply(null, args)
     }
-    return plugin.apply(null, args)
+    this.installedPlugins.add(plugin)
   }
 
   /**
@@ -111,6 +113,3 @@ export default class SDK {
     callHook(this.hooks, 'update', [this, component, isPage])
   }
 }
-
-// 上报状态码表
-SDK._reportCodes = reportCodes

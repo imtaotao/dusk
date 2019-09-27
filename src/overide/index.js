@@ -27,6 +27,8 @@ export function overideComponent (sdk, config, isPage) {
     }
 
     if (name === 'onLoad' || name === 'attached') {
+      // 将 SDK 注入到组件中
+      component.SDK = sdk
       // 添加依赖
       sdk.depComponents.set(component, isPage)
 
