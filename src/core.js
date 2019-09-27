@@ -17,6 +17,7 @@ export default class SDK {
     this.hooks = opts.hooks
     this.depComponents = new Map()
     this.router = new Router(this)
+    this.reportCodes = reportCodes
     this.installedPlugins = new Set()
     this.timeStack = Object.create(null)
   }
@@ -66,31 +67,26 @@ export default class SDK {
     }
   }
 
-  // 用于重写一个方法
-  wraper (obj, name, fn) {
-    assert(
-      !(name in obj),
-      'The method that needs to be wrapped is not a function',
-    )
-    obj[name] = createWraper(obj[name], fn)
+  // 用于包装一个方法
+  wraper (target, fn) {
+    return createWraper(target, fn)
   }
 
   // 插件
-  use (plugin, ...args) {
+  addPlugin (plugin, ...args) {
     assert(
       this.installedPlugins.has(plugin),
       'Don\'t repeat install plugin',
     )
-    
-    this.installedPlugins.add(plugin)
 
     args.unshift(this)
-
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args)
-      return plugins
+    } else {
+      plugin.apply(null, args)
     }
-    return plugin.apply(null, args)
+    this.installedPlugins.add(plugin)
+
   }
 
   // 调用 setData 会调用此函数
@@ -107,6 +103,3 @@ export default class SDK {
     callHook(this.hooks, 'update', [this, component, isPage])
   }
 }
-
-// 上报状态码表
-SDK._reportCodes = reportCodes

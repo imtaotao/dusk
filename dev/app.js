@@ -11,7 +11,12 @@ const SDK = createSDK({
   }
 })
 
-// const complete = SDK.use(plugins.firstScrenTime, 'pages/index/index')
+SDK.addPlugin(plugins.firstScrenTime, 'pages/index/index', () => {
+  
+})
+SDK.addPlugin(plugins.autoReport, {
+  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+})
 
 //app.js
 App({

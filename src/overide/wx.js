@@ -1,18 +1,10 @@
 import { createWraper } from '../utils'
 
-// 获取当前页面
-const getCurrentPagePath = () => {
-  const pages = getCurrentPages()
-  return Array.isArray(pages) && pages.length > 0
-    ? pages[pages.length - 1].route
-    : null
-}
-
 const handleRouter = (routerType, router, opts = {}) => {
   const { fail, success } = opts
   const info = {
     to: opts.url,
-    from: getCurrentPagePath(),
+    from: router.getCurrentPage().route,
   }
 
   // 路由跳转成功

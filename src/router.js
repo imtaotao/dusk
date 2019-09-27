@@ -13,4 +13,12 @@ export default class Router {
     payload.type = name
     this.sdk.report('routerError', payload)
   }
+
+  // 获取当前页面
+  getCurrentPage () {
+    const pages = getCurrentPages()
+    return Array.isArray(pages) && pages.length > 0
+      ? pages[pages.length - 1]
+      : null
+  }
 }
