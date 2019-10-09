@@ -1,7 +1,7 @@
 import SDK from './core'
-import { warn } from './utils'
+import {warn} from './utils'
 import * as plugins from './plugin'
-import { overideApp, overideComponent, overideWxClass } from './overide'
+import {overideApp, overideComponent, overideWxClass} from './overide'
 
 let isInitComplete = false
 
@@ -12,19 +12,19 @@ const nativeComponent = Component
 
 const filterOpts = opts => {
   return Object.assign(
-    {
-      hooks: {
-        // defaultReport 这个函数名是需要的，在一些插件里面可能需要因此判断是不是默认的函数
-        report: function defaultReport () {
-          warn('you need defined [report] hook function.')
+      {
+        hooks: {
+          // defaultReport 这个函数名是需要的，在一些插件里面可能需要因此判断是不是默认的函数
+          report: function defaultReport() {
+            warn('you need defined [report] hook function.')
+          },
         },
       },
-    },
-    opts,
+      opts,
   )
 }
 
-function initSDK (opts) {
+function initSDK(opts) {
   if (isInitComplete) {
     warn('Can\'t allow repeat initialize.')
   }

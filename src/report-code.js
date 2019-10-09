@@ -1,4 +1,4 @@
-import { assert } from './utils'
+import {assert} from './utils'
 
 // 错误类为 1x
 // 时间类为 2x

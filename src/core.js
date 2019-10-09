@@ -24,20 +24,20 @@ export default class SDK {
   }
 
   // 创建一个只调用一次的函数
-  once (fn) {
+  once(fn) {
     return once(fn)
   }
 
   // 用于包装一个方法
-  wraper (target, fn) {
+  wraper(target, fn) {
     return createWraper(target, fn)
   }
 
-  addCode (key, code) {
+  addCode(key, code) {
     addCode(key, code)
   }
 
-  time (type) {
+  time(type) {
     if (typeof type === 'string') {
       if (isUndef(this.timeStack[type])) {
         this.timeStack[type] = Date.now()
@@ -80,7 +80,7 @@ export default class SDK {
   }
 
   // 插件
-  addPlugin (plugin, ...args) {
+  addPlugin(plugin, ...args) {
     assert(
         this.installedPlugins.has(plugin),
         'Don\'t repeat install plugin',
@@ -101,13 +101,21 @@ export default class SDK {
    * @param component
    * @param data 用户自定义参数
    */
-  update(component, fnName, params) {
+  update(component, fnName, params, isSetData) {
     assert(isUndef(component), 'Missing component')
     const isPage = this.depComponents.get(component)
     const canProcessCfg = isPlainObject(component.SDKConfig)
 
     if (canProcessCfg) {
-      handleConfigHooks.update(fnName, params, this, component.SDKConfig, component, isPage)
+      handleConfigHooks.update({
+        fnName,
+        params,
+        sdk: this,
+        SDKConfig: component.SDKConfig,
+        component,
+        isPage,
+        isSetData
+      })
     }
 
     callHook(this.hooks, 'update', [this, component, isPage])

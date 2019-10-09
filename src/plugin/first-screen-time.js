@@ -18,46 +18,46 @@ export default function (sdk) {
 
   // app 里面需要记录的时间
   hooks.app.onLaunch = createWraper(
-    hooks.app.onLaunch,
-    (sdk, app, opts) => {
-      // 记录当前启动是哪个页面
-      entryPath = opts.path
-      // 记录初始化的时间
-      sdk.time('initToRequestTime')
-    },
+      hooks.app.onLaunch,
+      (sdk, app, opts) => {
+        // 记录当前启动是哪个页面
+        entryPath = opts.path
+        // 记录初始化的时间
+        sdk.time('initToRequestTime')
+      },
   )
 
   hooks.app.onShow = createWraper(
-    hooks.app.onShow,
-    () => {
-      if (!isUndef(entryPath)) {
-        sdk.time('renderContentTime')
-      }
-      // 打点记录渲染所有时长的时间，具体的接口在业务中写
-      sdk.time('renderAllContentTime')
-      // 记录当前 app 从显示到隐藏，一共停留的时长
-      sdk.time('showTime')
-    },
+      hooks.app.onShow,
+      () => {
+        if (!isUndef(entryPath)) {
+          sdk.time('renderContentTime')
+        }
+        // 打点记录渲染所有时长的时间，具体的接口在业务中写
+        sdk.time('renderAllContentTime')
+        // 记录当前 app 从显示到隐藏，一共停留的时长
+        sdk.time('showTime')
+      },
   )
-    
+
   hooks.app.onHide = createWraper(
-    hooks.app.onHide,
-    () => {
-      const duration = sdk.timeEnd('showTime')
-      sdk.report('showTime', duration)
-    },
+      hooks.app.onHide,
+      () => {
+        const duration = sdk.timeEnd('showTime')
+        sdk.report('showTime', duration)
+      },
   )
 
   hooks.app.onError = createWraper(
-    hooks.app.onError,
-    errMsg => {
-      // 自动上报在 app 里面捕获到的错误
-      sdk.report('catchGlobalError', errMsg)
-    },
+      hooks.app.onError,
+      errMsg => {
+        // 自动上报在 app 里面捕获到的错误
+        sdk.report('catchGlobalError', errMsg)
+      },
   )
 
   // 首页渲染完成的时间
-    hooks.page.onReady = createWraper(
+  hooks.page.onReady = createWraper(
       hooks.app.onReady,
       once((sdk, page) => {
         if (entryPath === page.route) {
@@ -65,7 +65,7 @@ export default function (sdk) {
           sdk.report('renderContentTime', duration)
         }
       }),
-    )
+  )
 
   // 在 SDK 中添加当前这个插件的方法
   sdk.firstScreen = {
@@ -73,7 +73,7 @@ export default function (sdk) {
       const duration = sdk.timeEnd('initToRequestTime')
       sdk.report('initToRequestTime', duration)
     }),
-    
+
     renderAllTime: once(() => {
       const duration = sdk.timeEnd('renderAllContentTime')
       sdk.report('renderAllContentTime', duration)

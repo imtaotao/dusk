@@ -1,15 +1,15 @@
-import { assert, isUndef, createWraper } from '../utils'
+import {assert, isUndef, createWraper} from '../utils'
 
 // 自动上报的插件
 export default function (sdk, opts = {}) {
   assert(
-    typeof opts.url !== 'string',
-    'The request url must be a string.\n\n --- from [autoReport] plugin\n',
+      typeof opts.url !== 'string',
+      'The request url must be a string.\n\n --- from [autoReport] plugin\n',
   )
 
   assert(
-    !('projectName' in opts),
-    'Must defined [projectName] field.'
+      !('projectName' in opts),
+      'Must defined [projectName] field.'
   )
 
   // 允许上报的方法
@@ -30,59 +30,59 @@ export default function (sdk, opts = {}) {
   }
 
   // 只处理默认的类型，其他用于自己定义的通过回调来得到数据
-  function wraperReprot (key, val) {
+  function wraperReprot(key, val) {
     let data = []
     let method = 'GET'
-    
+
     switch (key) {
-      // catchGlobalError
+        // catchGlobalError
       case 11 :
         break
 
-      // routerError
+        // routerError
       case 130 :
         break
 
-      // showTime
+        // showTime
       case 21 :
         break
 
-      // initToRequestTime
+        // initToRequestTime
       case 20 :
-        data = val.map(initToRequestTime => ({ ...genData('time'), exd: { initToRequestTime } }))
+        data = val.map(initToRequestTime => ({...genData('time'), exd: {initToRequestTime}}))
         break
 
-      // renderContentTime
+        // renderContentTime
       case 22 :
-        data = val.map(renderContentTime => ({ ...genData('time'), exd: { renderContentTime } }))
+        data = val.map(renderContentTime => ({...genData('time'), exd: {renderContentTime}}))
         break
 
-      // renderAllContentTime
+        // renderAllContentTime
       case 23 :
-        data = val.map(renderAllContentTime => ({ ...genData('time'), exd: { renderAllContentTime } }))
+        data = val.map(renderAllContentTime => ({...genData('time'), exd: {renderAllContentTime}}))
         break
 
-      // router
+        // router
       case 30 :
         break
 
-      // other
+        // other
       default :
         if (typeof opts.callback === 'function') {
-          const { data: _d, method: _m, module: _bm } = opts.callback(key, val)
+          const {data: _d, method: _m, module: _bm} = opts.callback(key, val)
           assert(
-            !Array.isArray(data),
-            '[data] must be an Array\n\n --- from [autoReport] plugin\n',
+              !Array.isArray(data),
+              '[data] must be an Array\n\n --- from [autoReport] plugin\n',
           )
 
           assert(
-            typeof _bm !== 'string',
-            '[module] must be an String\n\n --- from [autoReport] plugin\n',
+              typeof _bm !== 'string',
+              '[module] must be an String\n\n --- from [autoReport] plugin\n',
           )
-          
+
           // 保持需要处理的数据
           method = _m
-          data = _d.map(exd => ({ ...genData(_bm), exd }))
+          data = _d.map(exd => ({...genData(_bm), exd}))
         }
     }
 
@@ -101,9 +101,9 @@ export default function (sdk, opts = {}) {
   }
 
   if (
-    isUndef(sdk.hooks.report) ||
-    typeof sdk.hooks.report === 'function' &&
-    sdk.hooks.report.name !== 'defaultReport'
+      isUndef(sdk.hooks.report) ||
+      typeof sdk.hooks.report === 'function' &&
+      sdk.hooks.report.name !== 'defaultReport'
   ) {
     sdk.hooks.report = createWraper(sdk.hooks.report, wraperReprot)
   } else {

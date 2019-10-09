@@ -17,17 +17,19 @@ const assert = (condition, error) => {
     warn(error);
   }
 };
-const once = fn => {
-  let called = false;
-  return function () {
-    if (!called) {
-      called = true;
-      return fn.apply(this, arguments);
-    }
-  };
-};
 const isUndef = v => {
   return v === null || v === undefined;
+};
+const isFn = f => {
+  return typeof f === 'function';
+};
+const once = fn => {
+  let first = true;
+  return function (...args) {
+    if (!first) return;
+    first = false;
+    fn.apply(this, args);
+  };
 };
 const callHook = (hooks, name, params) => {
   if (hooks && typeof hooks[name] === 'function') {
@@ -83,14 +85,69 @@ class Router {
 var handleConfigHooks = {
   app: {},
   page: {
-    onLoad(sdk, page, opts, SDKConfig) {},
+    onLoad(sdk, page, opts, SDKConfig) {
+      const onLoadFns = SDKConfig.onLoad;
+
+      for (const key in onLoadFns) {
+        if (onLoadFns.hasOwnProperty(key) && typeof onLoadFns[key] === 'function') {
+          onLoadFns[key](sdk, page);
+        }
+      }
+    },
+
+    onShow(sdk, page, opts, SDKConfig) {
+      const onShowFns = SDKConfig.onShow;
+
+      for (const key in onShowFns) {
+        if (onShowFns.hasOwnProperty(key) && typeof onShowFns[key] === 'function') {
+          onShowFns[key](sdk, page);
+        }
+      }
+    },
 
     onUnLoad(sdk, page, opts, SDKConfig) {}
 
   },
   component: {},
 
-  update(component, SDKConfig, isPage) {}
+  update({
+    fnName,
+    params,
+    sdk,
+    SDKConfig,
+    component,
+    isPage,
+    isSetData
+  }) {
+    params = isUndef(params) ? {} : params;
+
+    if (isSetData) {
+      if (!isPlainObject(SDKConfig.updateAfterSetData)) return;
+
+      for (const key in SDKConfig.updateAfterSetData) {
+        if (SDKConfig.updateAfterSetData.hasOwnProperty(key)) {
+          SDKConfig.updateAfterSetData[key]();
+        }
+      }
+
+      return;
+    }
+
+    if (!isPlainObject(SDKConfig.update)) return;
+
+    if (isUndef(fnName)) {
+      for (const key in SDKConfig.update) {
+        if (SDKConfig.update.hasOwnProperty(key)) {
+          SDKConfig.update[key](params);
+        }
+      }
+
+      return;
+    }
+
+    assert(!isFn(SDKConfig.update[fnName]), `Can't find function: ${fnName}`);
+    SDKConfig.update[fnName](params);
+  }
 
 };
 
@@ -184,13 +241,21 @@ class SDK {
     this.installedPlugins.add(plugin);
   }
 
-  update(component) {
+  update(component, fnName, params, isSetData) {
     assert(isUndef(component), 'Missing component');
     const isPage = this.depComponents.get(component);
     const canProcessCfg = isPlainObject(component.SDKConfig);
 
     if (canProcessCfg) {
-      handleConfigHooks.update(this, component, component.SDKConfig, isPage);
+      handleConfigHooks.update({
+        fnName,
+        params,
+        sdk: this,
+        SDKConfig: component.SDKConfig,
+        component,
+        isPage,
+        isSetData
+      });
     }
 
     callHook(this.hooks, 'update', [this, component, isPage]);
@@ -396,7 +461,7 @@ function overideComponent(sdk, config, isPage) {
 
       component.setData = function (data, callback) {
         setData.call(this, data, createWraper(callback, () => {
-          sdk.update(this);
+          sdk.update(this, null, null, true);
         }));
       };
     }
@@ -505,3 +570,4 @@ function initSDK(opts) {
 
 exports.default = initSDK;
 exports.plugins = index;
+//# sourceMappingURL=wxsdk.common.js.map

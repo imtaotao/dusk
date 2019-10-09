@@ -1,6 +1,6 @@
 import overideWX from './wx'
 import handleConfigHooks from '../handle-config'
-import { createWraper, isPlainObject, assert, callHook } from '../utils'
+import {createWraper, isPlainObject, assert, callHook} from '../utils'
 
 export const SDKCfgNamespace = 'SDKConfig'
 
@@ -10,7 +10,7 @@ const componentLifeTime = 'created,attached,ready,moved,detached'
 const appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound'
 
 // 重写 component 和 page 的 config
-export function overideComponent (sdk, config, isPage) {
+export function overideComponent(sdk, config, isPage) {
   const SDKConfig = config[SDKCfgNamespace]
   const canProcessCfg = isPlainObject(SDKConfig)
 
@@ -37,7 +37,7 @@ export function overideComponent (sdk, config, isPage) {
       component.setData = function (data, callback) {
         setData.call(this, data,
             createWraper(callback, () => {
-              sdk.update(this)
+              sdk.update(this, null, null, true)
             })
         )
       }
@@ -86,7 +86,7 @@ export function overideComponent (sdk, config, isPage) {
 }
 
 // 重写 app 的 config
-export function overideApp (sdk, config) {
+export function overideApp(sdk, config) {
   const SDKConfig = config[SDKCfgNamespace]
   const canProcessCfg = isPlainObject(SDKConfig)
 
@@ -107,7 +107,7 @@ export function overideApp (sdk, config) {
 }
 
 // 重写 wx 类
-export function overideWxClass (sdk, nativeWX) {
+export function overideWxClass(sdk, nativeWX) {
   const overideClass = {}
 
   overideWX(sdk, (name, fn) => {
