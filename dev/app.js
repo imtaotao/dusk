@@ -7,6 +7,9 @@ SDK.addPlugin(plugins.autoReport, {
   uid: () => 'testUserId',
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
+SDK.addPlugin(plugins.tapReport, {
+  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+})
 
 //app.js
 App({

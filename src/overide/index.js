@@ -54,6 +54,9 @@ export function overideComponent(sdk, config, isPage) {
     callHook(compHooks, name, [sdk, component, opts])
   }
 
+  callHook(sdk.hooks.page, 'overrideBefore', [sdk, config])
+  callHook(sdk.hooks.component, 'overrideBefore', [sdk, config])
+
   // 包装所有生命周期函数
   // 然后调用 hooks，具体的实现内容可以通过插件的形式处理
   if (isPage) {

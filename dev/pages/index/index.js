@@ -26,6 +26,12 @@ Page({
       updateAfterSetData(params) {
         console.log('autoUpdate', params, 1)
       }
+    },
+    // report参数
+    reportData: {
+      qweData: {
+        aa: 1
+      }
     }
   },
   data: {

@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<view class="container" id="page" class="page" bindtap="handelTap">
+<view class="container" id="page" class="page" bindtap="tapReport">
     <view class="userinfo">
         <button class="rp" data-id="1" wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo"
                 bindgetuserinfo="getUserInfo">获取头像昵称
@@ -16,12 +16,12 @@
     </view>
     <view data-id="123">
         dsadsa
-        <view data-zareport='{"type": "submit", "params": { "memberId": "{{memberId}}" }}'>
+        <view data-zareport="param1">
             456456
         </view>
     </view>
     <view data-page="666">123456789
-        <view data-id="ewq">ewqewqewq</view>
+        <view data-zareport="qweData">ewqewqewq</view>
     </view>
 </view>
 
