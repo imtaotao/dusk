@@ -1,4 +1,5 @@
-import createSDK, { plugins } from './sdk/wxsdk.esm'
+import createSDK, {plugins} from './sdk/wxsdk.esm'
+
 const SDK = createSDK()
 
 SDK.addPlugin(plugins.firstScreenTime)
@@ -49,7 +50,7 @@ App({
     })
   },
 
-  onShow () {
+  onShow() {
     console.log('appshow')
     setTimeout(() => {
       console.log(SDK.router.getCurrentPage())

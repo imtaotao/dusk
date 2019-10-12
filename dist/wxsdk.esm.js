@@ -410,16 +410,58 @@ function tapReport (sdk, opts = {}) {
   hooks.page.overrideBefore = createWraper(hooks.page.overrideBefore, function (sdk, config) {
     config.tapReport = function (e) {
       let reportDataKey = e.target.dataset.zareport;
+      if (isUndef(reportDataKey)) return;
       assert(typeof reportDataKey !== 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n');
       assert(!config.SDKConfig.reportData || !config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`);
-      const params = config.SDKConfig.reportData[reportDataKey] || {};
+      const customParams = {
+        exd: JSON.stringify(config.SDKConfig.reportData[reportDataKey] || {})
+      };
+      const commonParams = genCommonOptions();
+      const params = Object.assign(commonParams, customParams);
+      const paramsStr = '?' + urlEncode(params).slice(1);
       wx.request({
-        url: opts.url,
-        data: params,
+        url: opts.url + paramsStr,
         success: res => {}
       });
     };
   });
+}
+
+function genCommonOptions() {
+  const app = getApp();
+  const params = Object.create(null);
+  let ramdomNum = Math.random().toString().slice(-6);
+  ramdomNum = parseInt(ramdomNum).toString(16);
+  let timestamp = Date.parse(new Date());
+  let Oxtimestamp = parseInt(timestamp).toString(16);
+  let unid = `za-${ramdomNum}-${Oxtimestamp}`;
+  params.unid = unid;
+  params.t = new Date().getTime();
+  params.uid = wx.getStorageSync('__uuid') || '';
+  params.p = getCurrentPages().route || 'pages/index/index';
+  params.sc = 'mp';
+  params.bm = "mingqi";
+  params.sp = "stat";
+  params.tp = 2;
+  return params;
+}
+
+function urlEncode(param, key) {
+  if (isUndef(param)) return '';
+  let paramStr = '';
+  const t = typeof param;
+
+  if (t === 'string' || t === 'number' || t === 'boolean') {
+    paramStr += '&' + key + '=' + encodeURIComponent(param);
+  } else {
+    assert(t !== 'object', `Unrecognized report param type ${t}. --- from [tap-report] plugin`);
+
+    for (let k in param) {
+      paramStr += urlEncode(param[k], k);
+    }
+  }
+
+  return paramStr;
 }
 
 
@@ -591,4 +633,3 @@ function initSDK(opts) {
 
 export default initSDK;
 export { index as plugins };
-//# sourceMappingURL=wxsdk.esm.js.map

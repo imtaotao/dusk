@@ -30,7 +30,11 @@ Page({
     // report参数
     reportData: {
       qweData: {
+        type: 'ewqewq clicked',
         aa: 1
+      },
+      param1: {
+        report: 'ewqewq'
       }
     }
   },
