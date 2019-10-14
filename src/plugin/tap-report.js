@@ -2,17 +2,23 @@ import {assert, createWraper, isUndef} from "../utils";
 // 统计用户页面点击
 
 
+// 默认是正式环境
+let isProd = true
+
 export default function (sdk, opts = {}) {
   assert(
     typeof opts.url !== 'string',
     'The request url must be a string.\n\n --- from [autoReport] plugin\n',
   )
 
+  isProd = opts.isProd
+
   const hooks = sdk.hooks
   if (isUndef(hooks.app)) hooks.app = {}
   if (isUndef(hooks.page)) hooks.page = {}
 
   sdk.addCode('tapEvent', 40)
+  sdk.addCode('c_buried', 41)
 
   hooks.page.overrideBefore = createWraper(
     hooks.page.overrideBefore,
@@ -23,8 +29,9 @@ export default function (sdk, opts = {}) {
         if (isUndef(reportDataKey)) return
         assert(typeof reportDataKey !== 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n')
         assert(!config.SDKConfig.reportData || !config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`)
-        const customParams = { exd: JSON.stringify(config.SDKConfig.reportData[reportDataKey] || {}) }
-        const commonParams = genCommonOptions()
+        // const customParams = {exd: JSON.stringify(config.SDKConfig.reportData[reportDataKey] || {})}
+        const customParams = {exd: genCustomParamsStr(config.SDKConfig.reportData[reportDataKey])}
+        const commonParams = genCommonParamsStr()
         const params = Object.assign(commonParams, customParams)
         const paramsStr = '?' + urlEncode(params).slice(1)
         wx.request({
@@ -35,11 +42,43 @@ export default function (sdk, opts = {}) {
       }
     }
   )
+
+  function wrapperReport(key, val) {
+    switch (key) {
+      case 41:
+        // 日志上报
+
+        // val是200毫秒之内的上报数据。目前日志系统不支持合并上报，所以遍历数组分别发请求
+        // assert(typeof val !== 'object', `The params must be an object.\n\n --- from [tap-report] plugin\n`)
+        val.forEach(item => {
+          const customParams = {exd: genCustomParamsStr(item)}
+          const commonParams = genCommonParamsStr()
+          const params = Object.assign(commonParams, customParams)
+          const paramsStr = '?' + urlEncode(params).slice(1)
+          wx.request({
+            url: opts.url + paramsStr,
+            success: res => {
+            }
+          })
+        })
+
+        break;
+    }
+  }
+
+  if (
+    isUndef(sdk.hooks.report) ||
+    typeof sdk.hooks.report === 'function' &&
+    sdk.hooks.report.name !== 'defaultReport'
+  ) {
+    sdk.hooks.report = createWraper(sdk.hooks.report, wrapperReport)
+  } else {
+    sdk.hooks.report = wrapperReport
+  }
 }
 
 // 生成公共字段
-function genCommonOptions() {
-  const app = getApp()
+function genCommonParamsStr() {
   const params = Object.create(null)
 
   let ramdomNum = Math.random().toString().slice(-6);
@@ -57,6 +96,12 @@ function genCommonOptions() {
   params.sp = "stat"
   params.tp = 2
   return params
+}
+
+function genCustomParamsStr(param) {
+  param = param || {}
+  param.isProd = isProd ? 1 : 0
+  return JSON.stringify(param)
 }
 
 // encode自定义参数

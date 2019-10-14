@@ -9,7 +9,8 @@ SDK.addPlugin(plugins.autoReport, {
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
 SDK.addPlugin(plugins.tapReport, {
-  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif',
+  isProd: true
 })
 
 //app.js

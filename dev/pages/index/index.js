@@ -87,6 +87,9 @@ Page({
         aaa: 1
       })
       this.SDK.update(this, 'update1', 321)
+      this.SDK.report('c_buried', {aa: 123})
+      this.SDK.report('c_buried', 1234)
+
     }, 3000)
   },
   getUserInfo: function (e) {

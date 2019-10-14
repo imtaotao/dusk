@@ -405,12 +405,15 @@ function firstScreenTime (sdk) {
   };
 }
 
+let isProd = true;
 function tapReport (sdk, opts = {}) {
   assert(typeof opts.url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
+  isProd = opts.isProd;
   const hooks = sdk.hooks;
   if (isUndef(hooks.app)) hooks.app = {};
   if (isUndef(hooks.page)) hooks.page = {};
   sdk.addCode('tapEvent', 40);
+  sdk.addCode('c_buried', 41);
   hooks.page.overrideBefore = createWraper(hooks.page.overrideBefore, function (sdk, config) {
     config.tapReport = function (e) {
       let reportDataKey = e.target.dataset.zareport;
@@ -418,9 +421,9 @@ function tapReport (sdk, opts = {}) {
       assert(typeof reportDataKey !== 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n');
       assert(!config.SDKConfig.reportData || !config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`);
       const customParams = {
-        exd: JSON.stringify(config.SDKConfig.reportData[reportDataKey] || {})
+        exd: genCustomParamsStr(config.SDKConfig.reportData[reportDataKey])
       };
-      const commonParams = genCommonOptions();
+      const commonParams = genCommonParamsStr();
       const params = Object.assign(commonParams, customParams);
       const paramsStr = '?' + urlEncode(params).slice(1);
       wx.request({
@@ -429,10 +432,34 @@ function tapReport (sdk, opts = {}) {
       });
     };
   });
+
+  function wrapperReport(key, val) {
+    switch (key) {
+      case 41:
+        val.forEach(item => {
+          const customParams = {
+            exd: genCustomParamsStr(item)
+          };
+          const commonParams = genCommonParamsStr();
+          const params = Object.assign(commonParams, customParams);
+          const paramsStr = '?' + urlEncode(params).slice(1);
+          wx.request({
+            url: opts.url + paramsStr,
+            success: res => {}
+          });
+        });
+        break;
+    }
+  }
+
+  if (isUndef(sdk.hooks.report) || typeof sdk.hooks.report === 'function' && sdk.hooks.report.name !== 'defaultReport') {
+    sdk.hooks.report = createWraper(sdk.hooks.report, wrapperReport);
+  } else {
+    sdk.hooks.report = wrapperReport;
+  }
 }
 
-function genCommonOptions() {
-  const app = getApp();
+function genCommonParamsStr() {
   const params = Object.create(null);
   let ramdomNum = Math.random().toString().slice(-6);
   ramdomNum = parseInt(ramdomNum).toString(16);
@@ -448,6 +475,12 @@ function genCommonOptions() {
   params.sp = "stat";
   params.tp = 2;
   return params;
+}
+
+function genCustomParamsStr(param) {
+  param = param || {};
+  param.isProd = isProd ? 1 : 0;
+  return JSON.stringify(param);
 }
 
 function urlEncode(param, key) {
