@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+coverage/
 dist/wxsdk.common.js.mp
 dist/wxsdk.esm.js.mp
 

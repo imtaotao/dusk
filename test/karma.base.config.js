@@ -1,9 +1,21 @@
 const path = require('path')
+const webpack = require('webpack')
 
 const webpackConfig = {
   module: {
-    rules: [],
+    rules: [
+      {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        exclude: /node_modules/
+      },
+    ],
   },
+  plugins: [
+    new webpack.DefinePlugin({
+      __VERSION__: '"0.0.0"',
+    }),
+  ],
   node: {
     __dirname: false,
   },
@@ -20,12 +32,13 @@ module.exports = {
   },
 
   files: [
+    'simulate.js',
     'script/*.spec.js',
     'miniprogram-simulate.js',
   ],
 
   preprocessors: {
-    'script/*.spec.js': ['webpack', 'dirname', /** 'sourcemap' **/],
+    'script/*.spec.js': ['webpack', 'dirname', 'sourcemap'],
   },
   
   plugins: [
