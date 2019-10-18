@@ -1,5 +1,5 @@
 // 用来处理 sdkconfig 配置
-import { assert, isUndef, isPlainObject } from "../utils";
+import { assert, isUndef, isPlainObject } from '../utils'
 
 export default {
   app: {},

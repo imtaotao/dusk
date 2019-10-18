@@ -13,15 +13,21 @@ export default class Event {
   }
 
   on (type, fn) {
-    return typeof fn === 'function'
-      ? !!getEventModule(this, type).normal.push(fn)
-      : false
+    if (typeof type !== 'string' &&
+      typeof fn !== 'function') {
+      return false
+    }
+    getEventModule(this, type).normal.push(fn)
+    return true
   }
 
   once (type, fn) {
-    return typeof fn === 'function'
-      ? !!getEventModule(this, type).once.push(fn)
-      : false
+    if (typeof type !== 'string' &&
+      typeof fn !== 'function') {
+      return false
+    }
+    getEventModule(this, type).once.push(fn)
+    return true
   }
 
   off (type, fn) {
