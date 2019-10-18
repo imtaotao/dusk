@@ -7,15 +7,17 @@ import {
   createWraper,
   isPlainObject,
 } from './utils'
+import Event from './event'
 import Router from './router'
 import handleConfigHooks from './handle-config'
 import {getCode, addCode, reportCodes} from './report-code'
 
-export default class SDK {
+export default class SDK extends Event {
   constructor(opts) {
     this.opts = opts
     this.reportStack = {}
     this.hooks = opts.hooks
+    this.reportTimeout = 200
     this.depComponents = new Map()
     this.router = new Router(this)
     this.reportCodes = reportCodes
@@ -49,8 +51,10 @@ export default class SDK {
 
   timeEnd(type, fn) {
     if (typeof type === 'string') {
-      if (!isUndef(this.timeStack[type])) {
-        const duration = Date.now() - this.timeStack[type]
+      const value = this.timeStack[type]
+
+      if (!isUndef(value)) {
+        const duration = Date.now() - value
         typeof fn === 'function' && fn(duration)
         this.timeStack[type] = null
         return duration
@@ -65,17 +69,22 @@ export default class SDK {
   // 调用数据上报的钩子
   // 网络请求等具体的副作用暴露给外部
   report(key, payload) {
-    key = getCode(key)
+    const {
+      reportStack,
+      reportTimeout,
+    } = this
+    const code = getCode(key)
+    const value = reportStack[code]
 
-    if (isUndef(this.reportStack[key])) {
-      this.reportStack[key] = [payload]
+    if (isUndef(value)) {
+      reportStack[code] = [payload]
       // 延迟 200ms 做批量上报
       setTimeout(() => {
-        callHook(this.hooks, 'report', [key, this.reportStack[key]])
-        this.reportStack[key] = null
-      }, 200)
+        callHook(this.hooks, 'report', [key, value])
+        reportStack[code] = null
+      }, reportTimeout)
     } else if (!isUndef(payload)) {
-      this.reportStack[key].push(payload)
+      value.push(payload)
     }
   }
 
@@ -103,6 +112,7 @@ export default class SDK {
    */
   update(component, fnName, params, isSetData) {
     assert(!isUndef(component), 'Missing component')
+
     const isPage = this.depComponents.get(component)
     const canProcessCfg = isPlainObject(component.SDKConfig)
 
@@ -114,7 +124,7 @@ export default class SDK {
         SDKConfig: component.SDKConfig,
         component,
         isPage,
-        isSetData
+        isSetData,
       })
     }
 

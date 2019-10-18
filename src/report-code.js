@@ -1,3 +1,4 @@
+// 这里定义者各种各样的事件类型
 import { assert } from './utils'
 
 // 错误类为 1x
