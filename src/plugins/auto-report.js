@@ -3,12 +3,12 @@ import {assert, isUndef, createWraper} from '../utils'
 // 自动上报的插件
 export default function (sdk, opts = {}) {
   assert(
-      typeof opts.url !== 'string',
+      typeof opts.url === 'string',
       'The request url must be a string.\n\n --- from [autoReport] plugin\n',
   )
 
   assert(
-      !('projectName' in opts),
+      'projectName' in opts,
       'Must defined [projectName] field.'
   )
 
@@ -71,12 +71,12 @@ export default function (sdk, opts = {}) {
         if (typeof opts.callback === 'function') {
           const {data: _d, method: _m, module: _bm} = opts.callback(key, val)
           assert(
-              !Array.isArray(data),
+              Array.isArray(data),
               '[data] must be an Array\n\n --- from [autoReport] plugin\n',
           )
 
           assert(
-              typeof _bm !== 'string',
+              typeof _bm === 'string',
               '[module] must be an String\n\n --- from [autoReport] plugin\n',
           )
 

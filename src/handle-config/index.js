@@ -1,5 +1,5 @@
 // 用来处理 sdkconfig 配置
-import {warn, assert, isFn, isUndef, isPlainObject} from "../utils";
+import { assert, isUndef, isPlainObject } from "../utils";
 
 export default {
   app: {},
@@ -24,11 +24,9 @@ export default {
       }
     },
 
-
     onUnLoad(sdk, page, opts, SDKConfig) {
 
     },
-
   },
 
   component: {},
@@ -50,6 +48,7 @@ export default {
 
     // 手动调用的更新
     if (!isPlainObject(SDKConfig.update)) return
+  
     // 执行所有update的方法
     if (isUndef(fnName)) {
       for (const key in SDKConfig.update) {
@@ -59,7 +58,12 @@ export default {
       }
       return
     }
-    assert(!isFn(SDKConfig.update[fnName]), `Can't find function: ${fnName}`)
+
+    assert(
+      typeof SDKConfig.update[fnName] === 'function',
+      `Can't find function: ${fnName}`,
+    )
+
     // 执行具体的update fn
     SDKConfig.update[fnName](params)
   }

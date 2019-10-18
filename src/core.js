@@ -82,7 +82,7 @@ export default class SDK {
   // 插件
   addPlugin(plugin, ...args) {
     assert(
-        this.installedPlugins.has(plugin),
+        !this.installedPlugins.has(plugin),
         'Don\'t repeat install plugin',
     )
 
@@ -102,7 +102,7 @@ export default class SDK {
    * @param data 用户自定义参数
    */
   update(component, fnName, params, isSetData) {
-    assert(isUndef(component), 'Missing component')
+    assert(!isUndef(component), 'Missing component')
     const isPage = this.depComponents.get(component)
     const canProcessCfg = isPlainObject(component.SDKConfig)
 

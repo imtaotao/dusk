@@ -8,17 +8,11 @@ export const warn = (message, isWarn) => {
 }
 
 export const assert = (condition, error) => {
-  if (condition) {
-    warn(error)
-  }
+  if (!condition) warn(error)
 }
 
 export const isUndef = v => {
   return v === null || v === undefined
-}
-
-export const isFn = f => {
-  return typeof f === 'function'
 }
 
 export const once =  (fn) => {

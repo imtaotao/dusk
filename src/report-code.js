@@ -1,4 +1,4 @@
-import {assert} from './utils'
+import { assert } from './utils'
 
 // 错误类为 1x
 // 时间类为 2x
@@ -12,11 +12,11 @@ export const reportCodes = {
 }
 
 export const addCode = (key, code) => {
-  assert(key in reportCodes, `The [${key}] already exists.`)
+  assert(!(key in reportCodes), `The [${key}] already exists.`)
   reportCodes[key] = code
 }
 
 export const getCode = key => {
-  assert(!(key in reportCodes), `Code [${key}] is does not exist.`)
+  assert(key in reportCodes, `Code [${key}] is does not exist.`)
   return reportCodes[key]
 }

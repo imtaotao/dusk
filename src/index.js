@@ -1,6 +1,6 @@
 import SDK from './core'
 import {warn} from './utils'
-import * as plugins from './plugin'
+import * as plugins from './plugins'
 import {overideApp, overideComponent, overideWxClass} from './overide'
 
 let isInitComplete = false
@@ -16,7 +16,7 @@ const filterOpts = opts => {
         hooks: {
           // defaultReport 这个函数名是需要的，在一些插件里面可能需要因此判断是不是默认的函数
           report: function defaultReport() {
-            warn('you need defined [report] hook function.')
+            warn('you need defined [report] hook function.', true)
           },
         },
       },

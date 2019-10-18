@@ -116,8 +116,8 @@ export function overideWxClass(sdk, nativeWX) {
   overideWX(sdk, (name, fn) => {
     // 只允许重写，不允许新增
     // 如果需要新增全局方法，不应该写在这里
-    assert(!(name in nativeWX), 'Only allowed to rewrite.')
-    assert(name in overideClass, `${name} has been rewritten`)
+    assert(name in nativeWX, 'Only allowed to rewrite.')
+    assert(!(name in overideClass), `${name} has been rewritten`)
     overideClass[name] = createWraper(nativeWX[name], fn)
   })
 

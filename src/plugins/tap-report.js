@@ -1,13 +1,12 @@
-import {assert, createWraper, isUndef} from "../utils";
+import { assert, createWraper, isUndef } from "../utils"
 // 统计用户页面点击
-
 
 // 默认是正式环境
 let isProd = true
 
 export default function (sdk, opts = {}) {
   assert(
-    typeof opts.url !== 'string',
+    typeof opts.url === 'string',
     'The request url must be a string.\n\n --- from [autoReport] plugin\n',
   )
 
@@ -24,16 +23,27 @@ export default function (sdk, opts = {}) {
     hooks.page.overrideBefore,
     function (sdk, config) {
       config.tapReport = function (e) {
-        let reportDataKey = e.target.dataset.zareport
+        const reportDataKey = e.target.dataset.zareport
+
         // 过滤没有声明上报的点击
         if (isUndef(reportDataKey)) return
-        assert(typeof reportDataKey !== 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n')
-        assert(!config.SDKConfig.reportData || !config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`)
+
+        assert(
+          typeof reportDataKey === 'string',
+          'The zareport must be a string.\n\n --- from [tap-report] plugin\n',
+        )
+
+        assert(
+          config.SDKConfig.reportData && config.SDKConfig.reportData.hasOwnProperty(reportDataKey),
+          `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`,
+        )
+
         // const customParams = {exd: JSON.stringify(config.SDKConfig.reportData[reportDataKey] || {})}
         const customParams = {exd: genCustomParamsStr(config.SDKConfig.reportData[reportDataKey])}
         const commonParams = genCommonParamsStr()
         const params = Object.assign(commonParams, customParams)
         const paramsStr = '?' + urlEncode(params).slice(1)
+
         wx.request({
           url: opts.url + paramsStr,
           success: res => {
@@ -45,7 +55,7 @@ export default function (sdk, opts = {}) {
 
   function wrapperReport(key, val) {
     switch (key) {
-      case 41:
+      case 41 :
         // 日志上报
 
         // val是200毫秒之内的上报数据。目前日志系统不支持合并上报，所以遍历数组分别发请求
@@ -55,6 +65,7 @@ export default function (sdk, opts = {}) {
           const commonParams = genCommonParamsStr()
           const params = Object.assign(commonParams, customParams)
           const paramsStr = '?' + urlEncode(params).slice(1)
+
           wx.request({
             url: opts.url + paramsStr,
             success: res => {
@@ -81,11 +92,11 @@ export default function (sdk, opts = {}) {
 function genCommonParamsStr() {
   const params = Object.create(null)
 
-  let ramdomNum = Math.random().toString().slice(-6);
-  ramdomNum = parseInt(ramdomNum).toString(16);
-  let timestamp = Date.parse(new Date());
-  let Oxtimestamp = parseInt(timestamp).toString(16);
-  let unid = `za-${ramdomNum}-${Oxtimestamp}`
+  let ramdomNum = Math.random().toString().slice(-6)
+  ramdomNum = parseInt(ramdomNum).toString(16)
+  const timestamp = Date.parse(new Date())
+  const Oxtimestamp = parseInt(timestamp).toString(16)
+  const unid = `za-${ramdomNum}-${Oxtimestamp}`
 
   params.unid = unid
   params.t = new Date().getTime()
@@ -113,7 +124,11 @@ function urlEncode(param, key) {
   if (t === 'string' || t === 'number' || t === 'boolean') {
     paramStr += '&' + key + '=' + encodeURIComponent(param)
   } else {
-    assert(t !== 'object', `Unrecognized report param type ${t}. --- from [tap-report] plugin`)
+    assert(
+      t === 'object',
+      `Unrecognized report param type ${t}. --- from [tap-report] plugin`,
+    )
+
     for (let k in param) {
       paramStr += urlEncode(param[k], k)
     }

@@ -9,15 +9,10 @@ const warn = (message, isWarn) => {
   throw new Error(message);
 };
 const assert = (condition, error) => {
-  if (condition) {
-    warn(error);
-  }
+  if (!condition) warn(error);
 };
 const isUndef = v => {
   return v === null || v === undefined;
-};
-const isFn = f => {
-  return typeof f === 'function';
 };
 const once = fn => {
   let first = true;
@@ -141,7 +136,7 @@ var handleConfigHooks = {
       return;
     }
 
-    assert(!isFn(SDKConfig.update[fnName]), `Can't find function: ${fnName}`);
+    assert(typeof SDKConfig.update[fnName] === 'function', `Can't find function: ${fnName}`);
     SDKConfig.update[fnName](params);
   }
 
@@ -153,11 +148,11 @@ const reportCodes = {
   'router': 30
 };
 const addCode = (key, code) => {
-  assert(key in reportCodes, `The [${key}] already exists.`);
+  assert(!(key in reportCodes), `The [${key}] already exists.`);
   reportCodes[key] = code;
 };
 const getCode = key => {
-  assert(!(key in reportCodes), `Code [${key}] is does not exist.`);
+  assert(key in reportCodes, `Code [${key}] is does not exist.`);
   return reportCodes[key];
 };
 
@@ -225,7 +220,7 @@ class SDK {
   }
 
   addPlugin(plugin, ...args) {
-    assert(this.installedPlugins.has(plugin), 'Don\'t repeat install plugin');
+    assert(!this.installedPlugins.has(plugin), 'Don\'t repeat install plugin');
     args.unshift(this);
 
     if (typeof plugin.install === 'function') {
@@ -238,7 +233,7 @@ class SDK {
   }
 
   update(component, fnName, params, isSetData) {
-    assert(isUndef(component), 'Missing component');
+    assert(!isUndef(component), 'Missing component');
     const isPage = this.depComponents.get(component);
     const canProcessCfg = isPlainObject(component.SDKConfig);
 
@@ -260,8 +255,8 @@ class SDK {
 }
 
 function autoReport (sdk, opts = {}) {
-  assert(typeof opts.url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
-  assert(!('projectName' in opts), 'Must defined [projectName] field.');
+  assert(typeof opts.url === 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
+  assert('projectName' in opts, 'Must defined [projectName] field.');
   const allowMethods = ['GET', 'POST'];
 
   const genData = bm => {
@@ -326,8 +321,8 @@ function autoReport (sdk, opts = {}) {
             method: _m,
             module: _bm
           } = opts.callback(key, val);
-          assert(!Array.isArray(data), '[data] must be an Array\n\n --- from [autoReport] plugin\n');
-          assert(typeof _bm !== 'string', '[module] must be an String\n\n --- from [autoReport] plugin\n');
+          assert(Array.isArray(data), '[data] must be an Array\n\n --- from [autoReport] plugin\n');
+          assert(typeof _bm === 'string', '[module] must be an String\n\n --- from [autoReport] plugin\n');
           method = _m;
           data = _d.map(exd => ({ ...genData(_bm),
             exd
@@ -403,7 +398,7 @@ function firstScreenTime (sdk) {
 
 let isProd = true;
 function tapReport (sdk, opts = {}) {
-  assert(typeof opts.url !== 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
+  assert(typeof opts.url === 'string', 'The request url must be a string.\n\n --- from [autoReport] plugin\n');
   isProd = opts.isProd;
   const hooks = sdk.hooks;
   if (isUndef(hooks.app)) hooks.app = {};
@@ -412,10 +407,10 @@ function tapReport (sdk, opts = {}) {
   sdk.addCode('c_buried', 41);
   hooks.page.overrideBefore = createWraper(hooks.page.overrideBefore, function (sdk, config) {
     config.tapReport = function (e) {
-      let reportDataKey = e.target.dataset.zareport;
+      const reportDataKey = e.target.dataset.zareport;
       if (isUndef(reportDataKey)) return;
-      assert(typeof reportDataKey !== 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n');
-      assert(!config.SDKConfig.reportData || !config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`);
+      assert(typeof reportDataKey === 'string', 'The zareport must be a string.\n\n --- from [tap-report] plugin\n');
+      assert(config.SDKConfig.reportData && config.SDKConfig.reportData.hasOwnProperty(reportDataKey), `Unrecognized report params key ${reportDataKey}. --- from [tap-report] plugin`);
       const customParams = {
         exd: genCustomParamsStr(config.SDKConfig.reportData[reportDataKey])
       };
@@ -459,9 +454,9 @@ function genCommonParamsStr() {
   const params = Object.create(null);
   let ramdomNum = Math.random().toString().slice(-6);
   ramdomNum = parseInt(ramdomNum).toString(16);
-  let timestamp = Date.parse(new Date());
-  let Oxtimestamp = parseInt(timestamp).toString(16);
-  let unid = `za-${ramdomNum}-${Oxtimestamp}`;
+  const timestamp = Date.parse(new Date());
+  const Oxtimestamp = parseInt(timestamp).toString(16);
+  const unid = `za-${ramdomNum}-${Oxtimestamp}`;
   params.unid = unid;
   params.t = new Date().getTime();
   params.uid = wx.getStorageSync('__uuid') || '';
@@ -487,7 +482,7 @@ function urlEncode(param, key) {
   if (t === 'string' || t === 'number' || t === 'boolean') {
     paramStr += '&' + key + '=' + encodeURIComponent(param);
   } else {
-    assert(t !== 'object', `Unrecognized report param type ${t}. --- from [tap-report] plugin`);
+    assert(t === 'object', `Unrecognized report param type ${t}. --- from [tap-report] plugin`);
 
     for (let k in param) {
       paramStr += urlEncode(param[k], k);
@@ -614,8 +609,8 @@ function overideApp(sdk, config) {
 function overideWxClass(sdk, nativeWX) {
   const overideClass = {};
   overideWX(sdk, (name, fn) => {
-    assert(!(name in nativeWX), 'Only allowed to rewrite.');
-    assert(name in overideClass, `${name} has been rewritten`);
+    assert(name in nativeWX, 'Only allowed to rewrite.');
+    assert(!(name in overideClass), `${name} has been rewritten`);
     overideClass[name] = createWraper(nativeWX[name], fn);
   });
   wx = Object.assign({}, nativeWX, overideClass);
@@ -631,7 +626,7 @@ const filterOpts = opts => {
   return Object.assign({
     hooks: {
       report: function defaultReport() {
-        warn('you need defined [report] hook function.');
+        warn('you need defined [report] hook function.', true);
       }
     }
   }, opts);
