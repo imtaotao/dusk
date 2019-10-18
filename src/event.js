@@ -1,3 +1,12 @@
+function getEventModule (instance, type) {
+  return instance._listener[type] || (
+    instance._listener[type] = {
+      once: [],
+      normal: [],
+    }
+  )
+}
+
 export default class Event {
   constructor() {
     this._listener = Object.create(null)
@@ -42,23 +51,15 @@ export default class Event {
     this._listener = Object.create(null)
   }
 
+  // data 是个数组
   emit (type, data) {
     const eventModule = this._listener[type]
     if (eventModule) {
-      eventModule.once.forEach(fn => fn(data))
+      eventModule.once.forEach(fn => fn.apply(this, data))
       eventModule.once = []
-      eventModule.normal.forEach(fn => fn(data))
+      eventModule.normal.forEach(fn => fn.apply(this, data))
       return true
     }
     return false
   }
-}
-
-function getEventModule (instance, type) {
-  return instance._listener[type] || (
-    instance._listener[type] = {
-      once: [],
-      normal: [],
-    }
-  )
 }

@@ -78,9 +78,12 @@ export default class SDK extends Event {
 
     if (isUndef(value)) {
       reportStack[code] = [payload]
+
       // 延迟 200ms 做批量上报
       setTimeout(() => {
+        this.emit('report', [key, value])
         callHook(this.hooks, 'report', [key, value])
+        
         reportStack[code] = null
       }, reportTimeout)
     } else if (!isUndef(payload)) {
@@ -91,8 +94,8 @@ export default class SDK extends Event {
   // 插件
   addPlugin(plugin, ...args) {
     assert(
-        !this.installedPlugins.has(plugin),
-        'Don\'t repeat install plugin',
+      !this.installedPlugins.has(plugin),
+      'Don\'t repeat install plugin',
     )
 
     args.unshift(this)
@@ -111,23 +114,28 @@ export default class SDK extends Event {
    * @param data 用户自定义参数
    */
   update(component, fnName, params, isSetData) {
-    assert(!isUndef(component), 'Missing component')
+    assert(
+      !isUndef(component),
+      'Missing component',
+    )
 
     const isPage = this.depComponents.get(component)
     const canProcessCfg = isPlainObject(component.SDKConfig)
+    const emitData = [this, component, isPage]
 
     if (canProcessCfg) {
       handleConfigHooks.update({
         fnName,
         params,
-        sdk: this,
-        SDKConfig: component.SDKConfig,
-        component,
         isPage,
         isSetData,
+        component,
+        sdk: this,
+        SDKConfig: component.SDKConfig,
       })
     }
 
-    callHook(this.hooks, 'update', [this, component, isPage])
+    this.emit('update', emitData)
+    callHook(this.hooks, 'update', emitData)
   }
 }
