@@ -7,11 +7,12 @@ const cmd = require('rollup-plugin-commonjs')
 const cleanup = require('rollup-plugin-cleanup')
 const { terser } = require('rollup-plugin-terser')
 const resolve = require('rollup-plugin-node-resolve')
+const typescript = require('rollup-plugin-typescript2')
 
 const libName = require('./package.json').name
 const testLibPath = path.resolve(__dirname, './dev')
 const sdkDir = path.resolve(testLibPath, './sdk')
-const entryPath = path.resolve(__dirname, './src/index.js')
+const entryPath = path.resolve(__dirname, './src/index.ts')
 const outputPath = filename => path.resolve(__dirname, './dist', filename)
 
 const esm = {
@@ -38,7 +39,7 @@ const uglifyCjs = {
   },
 }
 
-async function build (cfg, needUglify, sourcemap = false) {
+async function build (cfg, type, needUglify, sourcemap = false) {
   cfg.output.sourcemap = sourcemap
 
   const buildCfg = {
@@ -49,6 +50,11 @@ async function build (cfg, needUglify, sourcemap = false) {
       babel({
         babelrc: true,
         exclude: 'node_modules/**',
+      }),
+      typescript({
+        typescript: require('typescript'),
+        tsconfig: path.resolve(__dirname, 'tsconfig.json'),
+        cacheRoot: path.resolve(__dirname, `.cache_${type}`),
       }),
       cmd(),
     ]
@@ -79,11 +85,11 @@ const transferfile = (from, desPath) => {
 
 const buildVersion = sourcemap => {
   const builds = [
-    build(esm, false, sourcemap),
-    build(cjs, false, sourcemap),
+    build(esm, 'esm', false, sourcemap),
+    build(cjs, 'cjs', false, sourcemap),
   ]
   if (!sourcemap) {
-    builds.push(build(uglifyCjs, true, sourcemap))
+    builds.push(build(uglifyCjs, 'min', true, sourcemap))
   }
 
   Promise.all(builds).then(() => {
