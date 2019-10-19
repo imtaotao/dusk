@@ -52,7 +52,7 @@ export const remove = (list: Array<any>, item:any) => {
 }
 
 export const createWraper = <T extends (...args: Array<any>) => any>(
-  target : T,
+  target?: T,
   before?: T,
   after?: T,
 ) => {

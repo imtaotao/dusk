@@ -4,5 +4,5 @@ export declare const isUndef: (v: any) => boolean;
 export declare const once: <T extends (...args: any[]) => any>(fn: T) => T;
 export declare const callHook: (hooks: Object | null | undefined, name: string, params: any[]) => any;
 export declare const remove: (list: any[], item: any) => void;
-export declare const createWraper: <T extends (...args: any[]) => any>(target: T, before?: T | undefined, after?: T | undefined) => T;
+export declare const createWraper: <T extends (...args: any[]) => any>(target?: T | undefined, before?: T | undefined, after?: T | undefined) => T;
 export declare const isPlainObject: (obj: any) => boolean;

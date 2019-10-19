@@ -37,7 +37,7 @@ export default function createSDK (options: Options) {
   }
 
   Component = function (config: Object) {
-    config = overideComponent(sdk, config)
+    config = overideComponent(sdk, config as any)
     return nativeComponent.call(this, config)
   }
 

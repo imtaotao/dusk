@@ -93,9 +93,12 @@ var SDK = (function (_super) {
     __extends(SDK, _super);
     function SDK(options) {
         var _this = _super.call(this) || this;
+        _this.depComponents = new Map();
         _this.options = options;
         return _this;
     }
+    SDK.prototype.update = function () {
+    };
     return SDK;
 }(Event));
 
