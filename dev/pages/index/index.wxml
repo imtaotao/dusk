@@ -2,19 +2,20 @@
 <view
  class="container"
  bindtap="duskEvent"
- data-type='contaner'
 >
-	<view data-type='aaa'>
+	container
+	<view mark:dusk='aaa'>
 		aaaa
-		<view data-type='bbb'>
+		<view mark:dusk='bbb'>
 			bbbb
-			<view data-type='ccc'>
+			<view mark:dusk='cccc'>
 				cccc
-				<view data-type='ddd'>
+				<view mark:dusk='ddd'>
 					dddd
 				</view>
 			</view>
 		</view>
 	</view>
+	<one/>
 </view>
 

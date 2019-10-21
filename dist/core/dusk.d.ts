@@ -7,9 +7,7 @@ export interface Options {
 }
 export default class Dusk extends Event {
     private options;
-    callOnce: <T extends (...args: any[]) => any>(fn: T) => T;
     version: string;
-    createWraper: <T extends (...args: any[]) => any>(target?: T | undefined, before?: T | undefined, after?: T | undefined) => T;
     Router: Router;
     NetWork: NetWork;
     Template: Template;
@@ -18,6 +16,10 @@ export default class Dusk extends Event {
     depComponents: Map<WxPage | WxComponent, boolean>;
     installedPlugins: Set<(...args: any[]) => any>;
     constructor(options: Options);
+    Utils: {
+        once: <T extends (...args: any[]) => any>(fn: T) => T;
+        createWraper: <T_1 extends (...args: any[]) => any>(target?: T_1 | undefined, before?: T_1 | undefined, after?: T_1 | undefined) => T_1;
+    };
     report(type: string, val: any): void;
     addPlugin<T extends (dusk: Dusk, ...args: Array<any>) => any>(plugin: T, ...args: any[]): ReturnType<T>;
     time(type: string): void;

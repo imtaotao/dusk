@@ -221,7 +221,7 @@ var NetWork = (function (_super) {
 
 function expandExtrcMethods(dusk, config, isPage) {
     function duskEvent(e) {
-        dusk.Template.emit('duskEvent', [e]);
+        dusk.Template.acceptDuskEvent(this, e, isPage);
     }
     if (isPage) {
         config.duskEvent = duskEvent;
@@ -240,6 +240,20 @@ var Template = (function (_super) {
     function Template() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    Template.prototype.acceptDuskEvent = function (component, e, isPage) {
+        var type = e.type;
+        var dataset = e.target.dataset;
+        var value = dataset['duskvalue'] || dataset['duskValue'];
+        console.log(e);
+        console.log(e.mark);
+        if (value) {
+            this.emit('event', [type, value, function () { return ({
+                    isPage: isPage,
+                    event: e,
+                    component: component,
+                }); }]);
+        }
+    };
     return Template;
 }(Event));
 
@@ -247,9 +261,7 @@ var Dusk = (function (_super) {
     __extends(Dusk, _super);
     function Dusk(options) {
         var _this = _super.call(this) || this;
-        _this.callOnce = once;
         _this.version = '0.0.1';
-        _this.createWraper = createWraper;
         _this.Router = new Router();
         _this.NetWork = new NetWork();
         _this.Template = new Template();
@@ -257,6 +269,10 @@ var Dusk = (function (_super) {
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
         _this.installedPlugins = new Set();
+        _this.Utils = {
+            once: once,
+            createWraper: createWraper,
+        };
         _this.options = options;
         return _this;
     }

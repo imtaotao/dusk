@@ -21,7 +21,7 @@
 		}
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.2.5",
+	"libVersion": "2.7.1",
 	"appid": "wxdf7eaa7279443f6d",
 	"projectname": "miniprogram-quickstart",
 	"isGameTourist": false,

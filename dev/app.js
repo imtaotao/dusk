@@ -3,8 +3,9 @@ import { createDuskInstance } from './sdk/wxsdk.esm'
 console.log(createDuskInstance)
 const SDK = createDuskInstance()
 
-SDK.Template.on('duskEvent', e => {
-  console.log(e)
+SDK.Template.on('event', (type, value, g) => {
+  console.log(type, value)
+  console.log(g().event.mark)
 })
 console.log(SDK)
 // SDK.addPlugin(plugins.firstScreenTime)

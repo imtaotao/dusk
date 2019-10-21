@@ -112,7 +112,7 @@ Page({
 
   queryMultipleNodes() {
     wx.createSelectorQuery()
-        .selectAll('.rp')
+        .selectAll('[data-duskvalue]')
         .fields({
           context: true,
           node: true,

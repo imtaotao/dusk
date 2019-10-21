@@ -12,11 +12,7 @@ declare const __VERSION__: string
 export default class Dusk extends Event {
   private options: Options
  
-  public callOnce = once
-
   public version = __VERSION__
-  
-  public createWraper = createWraper
 
   public Router = new Router()
 
@@ -35,6 +31,12 @@ export default class Dusk extends Event {
   public constructor (options: Options) {
     super()
     this.options = options
+  }
+
+  // 工具类
+  public Utils = {
+    once,
+    createWraper,
   }
 
   public report (type:string, val: any) {

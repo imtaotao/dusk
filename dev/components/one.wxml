@@ -1,5 +1,9 @@
 <!--components/one.wxml-->
 <view>
-  components/one.wxml
-  <Two />
+	components/one.wxml
+	<view mark:dusk='one'>
+		fdsfdsfsdf
+	</view>
+	<Two/>
 </view>
+
