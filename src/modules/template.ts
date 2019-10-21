@@ -60,10 +60,19 @@ export function expandExtrcMethods (dusk: Dusk, config: ExpandMethods & Object, 
   }
 }
 
+const DATANAMESPACE = 'dusk'
+function getResult (event: WxEvent) {
+  const mark = event.mark
+  const dataset = event.target.dataset
+
+  // mark 的优先级要高一点，mark 需要微信版本在 2.7.1 以上 
+  return (mark && mark[DATANAMESPACE]) || dataset[DATANAMESPACE]
+}
+
 export default class Template extends Event {
   public acceptDuskEvent (component: WxPage | WxComponent, e: WxEvent, isPage: boolean) {
     const type = e.type
-    const value = e.target.dataset['dusk']
+    const value = getResult(e)
 
     if (value) {
       // 触发事件

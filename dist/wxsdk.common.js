@@ -67,10 +67,10 @@ function injectToComponent(component, modules) {
         component[key] = val;
     });
 }
-function dispatch(name, dusk, component, isPage, opts) {
+function dispatch(name, dusk, component, isPage, options, config) {
     if (name === 'onLoad' || name === 'attached') {
-        injectToComponent(component, { dusk: dusk });
         dusk.depComponents.set(component, isPage);
+        injectToComponent(component, { dusk: dusk });
         var setData_1 = component.setData;
         component.setData = function (data, callback) {
             setData_1.call(this, data, createWraper(callback, function () {
@@ -81,13 +81,13 @@ function dispatch(name, dusk, component, isPage, opts) {
     if (name === 'onUnload' || name === 'detached') {
         dusk.depComponents.delete(component);
     }
-    dusk.emit(name, [component, opts, isPage]);
+    dusk.emit(name, [component, options, config, isPage]);
 }
 function overideApp(dusk, config) {
     appLifeTime.split(',')
         .forEach(function (name) {
-        config[name] = createWraper(config[name], function (opts) {
-            dusk.emit(name, [this, opts]);
+        config[name] = createWraper(config[name], function (options) {
+            dusk.emit(name, [this, options, config]);
         });
     });
     return config;
@@ -95,8 +95,8 @@ function overideApp(dusk, config) {
 function overidePage(dusk, config) {
     pageLifeTime.split(',')
         .forEach(function (name) {
-        config[name] = createWraper(config[name], function (opts) {
-            dispatch(name, dusk, this, true, opts);
+        config[name] = createWraper(config[name], function (options) {
+            dispatch(name, dusk, this, true, options, config);
         });
     });
     return config;
@@ -107,8 +107,8 @@ function overideComponent(dusk, config) {
     var set = function (key, fn) { return config[key] = config.lifetimes[key] = fn; };
     componentLifeTime.split(',')
         .forEach(function (name) {
-        set(name, createWraper(get(name), function (opts) {
-            dispatch(name, dusk, this, false, opts);
+        set(name, createWraper(get(name), function (options) {
+            dispatch(name, dusk, this, false, options, config);
         }));
     });
     return config;
@@ -203,6 +203,30 @@ var Event = (function () {
     return Event;
 }());
 
+var Utils = {
+    once: once,
+    createWraper: createWraper,
+    uuid: function () {
+        var uuidFormat = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+        return uuidFormat.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0;
+            var v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    },
+    unid: function () {
+        var ramdomNum = parseInt(Math.random().toString().slice(-6)).toString(16);
+        var oxtimestamp = parseInt(Date.now()).toString(16);
+        return "za-" + ramdomNum + "-" + oxtimestamp;
+    },
+    getCurrentPage: function () {
+        var pages = getCurrentPages();
+        return Array.isArray(pages) && pages.length > 0
+            ? pages[pages.length - 1]
+            : null;
+    },
+};
+
 var Router = (function (_super) {
     __extends(Router, _super);
     function Router() {
@@ -235,6 +259,12 @@ function expandExtrcMethods(dusk, config, isPage) {
         }
     }
 }
+var DATANAMESPACE = 'dusk';
+function getResult(event) {
+    var mark = event.mark;
+    var dataset = event.target.dataset;
+    return (mark && mark[DATANAMESPACE]) || dataset[DATANAMESPACE];
+}
 var Template = (function (_super) {
     __extends(Template, _super);
     function Template() {
@@ -242,10 +272,7 @@ var Template = (function (_super) {
     }
     Template.prototype.acceptDuskEvent = function (component, e, isPage) {
         var type = e.type;
-        var dataset = e.target.dataset;
-        var value = dataset['duskvalue'] || dataset['duskValue'];
-        console.log(e);
-        console.log(e.mark);
+        var value = getResult(e);
         if (value) {
             this.emit('event', [type, value, function () { return ({
                     isPage: isPage,
@@ -262,6 +289,7 @@ var Dusk = (function (_super) {
     function Dusk(options) {
         var _this = _super.call(this) || this;
         _this.version = '0.0.1';
+        _this.Utils = Utils;
         _this.Router = new Router();
         _this.NetWork = new NetWork();
         _this.Template = new Template();
@@ -269,10 +297,6 @@ var Dusk = (function (_super) {
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
         _this.installedPlugins = new Set();
-        _this.Utils = {
-            once: once,
-            createWraper: createWraper,
-        };
         _this.options = options;
         return _this;
     }

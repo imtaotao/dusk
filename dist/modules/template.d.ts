@@ -24,12 +24,12 @@ interface WxEvent {
     currentTarget?: Target;
     touches: Array<Touches>;
     changedTouches: Array<Touches>;
+    mark?: {
+        [key: string]: any;
+    };
     detail: {
         x: number;
         y: number;
-    };
-    mark: {
-        [key: string]: any;
     };
 }
 interface ExpandMethods {

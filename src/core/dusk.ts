@@ -1,9 +1,10 @@
 import Event from '../share/event'
+import Utils from '../modules/utils'
 import Router from '../modules/router'
 import NetWork from '../modules/network'
 import Template from '../modules/template'
+import { warn, assert, isUndef } from 'src/share/utils'
 import { WxPage, WxComponent } from './overidde-component'
-import { warn, once, assert, isUndef, createWraper } from 'src/share/utils'
 
 export interface Options {}
 declare const __VERSION__: string
@@ -13,6 +14,8 @@ export default class Dusk extends Event {
   private options: Options
  
   public version = __VERSION__
+  // 工具类
+  public Utils = Utils
 
   public Router = new Router()
 
@@ -31,12 +34,6 @@ export default class Dusk extends Event {
   public constructor (options: Options) {
     super()
     this.options = options
-  }
-
-  // 工具类
-  public Utils = {
-    once,
-    createWraper,
   }
 
   public report (type:string, val: any) {

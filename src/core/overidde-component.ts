@@ -45,18 +45,19 @@ function injectToComponent <T>(
 }
 
 function dispatch (
-  name: PageLife| ComponentLife,
+  name: PageLife | ComponentLife,
   dusk: Dusk,
   component: WxPage | WxComponent,
   isPage: boolean,
-  opts?: Object,
+  options: Object,
+  config: Object,
 ) {
     if (name === 'onLoad' || name === 'attached') {
-      // 将需要的依赖注入到组件中去
-      injectToComponent(component, { dusk })
-
       // 添加依赖
       dusk.depComponents.set(component, isPage)
+
+      // 将需要的依赖注入到组件中去
+      injectToComponent(component, { dusk })
 
       // 包装 setState 方法，组件的每次更新我们都需要知道
       const setData = component.setData
@@ -74,7 +75,7 @@ function dispatch (
       dusk.depComponents.delete(component)
     }
 
-    dusk.emit(name, [component, opts, isPage])
+    dusk.emit(name, [component, options, config, isPage])
 }
 
 export function overideApp (
@@ -85,8 +86,8 @@ export function overideApp (
   .forEach((name: AppLife) => {
     config[name] = createWraper(
         config[name],
-        function (opts?: Object) {
-          dusk.emit(name, [this, opts])
+        function (options: Object) {
+          dusk.emit(name, [this, options, config])
         },
     )
   })
@@ -101,8 +102,8 @@ export function overidePage (
   .forEach((name: PageLife) => {
     config[name] = createWraper(
         config[name],
-        function (opts?: Object) {
-          dispatch(name, dusk, this, true, opts)
+        function (options: Object) {
+          dispatch(name, dusk, this, true, options, config)
         },
     )
   })
@@ -122,8 +123,8 @@ export function overideComponent (
     set(name,
       createWraper(
         get(name),
-        function (opts?: Object) {
-          dispatch(name, dusk, this, false, opts)
+        function (options: Object) {
+          dispatch(name, dusk, this, false, options, config)
         },
       )
     )
