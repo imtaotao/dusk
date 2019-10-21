@@ -10,6 +10,23 @@ var assert = function (condition, error) {
     if (!condition)
         warn(error);
 };
+var isUndef = function (v) {
+    return v === null || v === undefined;
+};
+var once = function (fn) {
+    var first = true;
+    function wrap() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        if (!first)
+            return;
+        first = false;
+        return fn.apply(this, args);
+    }
+    return wrap;
+};
 var mapObject = function (obj, callback) {
     var result = {};
     for (var key in obj) {
@@ -116,16 +133,6 @@ function __extends(d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 }
-var __assign = function() {
-    __assign = Object.assign || function __assign(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 
 function getEventModule(instance, type) {
     return instance._listener[type] || (instance._listener[type] = {
@@ -192,18 +199,60 @@ var Event = (function () {
     return Event;
 }());
 
+var Router = (function (_super) {
+    __extends(Router, _super);
+    function Router() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return Router;
+}(Event));
+
+var NetWork = (function (_super) {
+    __extends(NetWork, _super);
+    function NetWork() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return NetWork;
+}(Event));
+
+function expandExtrcMethods(dusk, config, isPage) {
+    function duskEvent(e) {
+        dusk.Template.emit('duskEvent', [e]);
+    }
+    if (isPage) {
+        config.duskEvent = duskEvent;
+    }
+    else {
+        if (config.methods) {
+            config.methods.duskEvent = duskEvent;
+        }
+        else {
+            config.methods = { duskEvent: duskEvent };
+        }
+    }
+}
+var Template = (function (_super) {
+    __extends(Template, _super);
+    function Template() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return Template;
+}(Event));
+
 var Dusk = (function (_super) {
     __extends(Dusk, _super);
     function Dusk(options) {
         var _this = _super.call(this) || this;
+        _this.callOnce = once;
         _this.version = '0.0.1';
+        _this.createWraper = createWraper;
+        _this.Router = new Router();
+        _this.NetWork = new NetWork();
+        _this.Template = new Template();
         _this.types = [];
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
         _this.installedPlugins = new Set();
-        _this.Router = __assign({}, new Event());
-        _this.NetWork = __assign({}, new Event());
-        _this.Template = __assign({}, new Event());
         _this.options = options;
         return _this;
     }
@@ -221,17 +270,49 @@ var Dusk = (function (_super) {
         this.installedPlugins.add(plugin);
         return plugin.apply(null, args);
     };
+    Dusk.prototype.time = function (type) {
+        if (typeof type === 'string' && isUndef(this.timeStack[type])) {
+            this.timeStack[type] = Date.now();
+            return;
+        }
+        warn("Timer [" + type + "] already exists.", true);
+    };
+    Dusk.prototype.timeEnd = function (type, fn) {
+        if (typeof type === 'string') {
+            var value = this.timeStack[type];
+            if (!isUndef(value)) {
+                var duration = Date.now() - value;
+                if (typeof fn === 'function') {
+                    fn(duration);
+                }
+                this.timeStack[type] = null;
+                return duration;
+            }
+        }
+        warn("Timer [" + type + "] already exists.");
+        return null;
+    };
     return Dusk;
 }(Event));
-var a = new Dusk({});
-var dd = a.addPlugin(function (s, aa) {
-    return {
-        a: function (fasd) {
-        }
-    };
-}, 12);
 
 var nativeWX = wx;
+function overiddenWX(dusk, rewrite) {
+    var routerMethos = 'reLaunch,switchTab,navigateTo,redirectTo';
+    routerMethos.split(',').forEach(function (methodName) {
+        rewrite(methodName, function (options) {
+            dusk.Router.emit(methodName, [options]);
+        });
+    });
+}
+function overiddenWX$1 (dusk) {
+    var overideClass = {};
+    overiddenWX(dusk, function (name, fn) {
+        assert(name in nativeWX, 'Can\'t allowed add new method.');
+        assert(!(name in overideClass), "[" + name + "] has been rewritten");
+        overideClass[name] = createWraper(nativeWX[name], fn);
+    });
+    wx = Object.assign({}, nativeWX, overideClass);
+}
 
 var nativeApp = App;
 var nativePage = Page;
@@ -240,21 +321,27 @@ var isInitComplete = false;
 function createDuskInstance(options) {
     assert(!isInitComplete, 'Can\'t allow repeat initialize.');
     isInitComplete = true;
-    var sdk = new Dusk(options);
+    var dusk = new Dusk(options);
     Page = function (config) {
-        config = overidePage(sdk, config);
+        config = overidePage(dusk, config);
+        dusk.emit('pageCreateBefore', [config]);
+        expandExtrcMethods(dusk, config, true);
         return nativePage.call(this, config);
     };
     Component = function (config) {
-        config = overideComponent(sdk, config);
+        config = overideComponent(dusk, config);
+        dusk.emit('ComponentCreateBefore', [config]);
+        expandExtrcMethods(dusk, config, false);
         return nativeComponent.call(this, config);
     };
     App = function (config) {
-        config = overideApp(sdk, config);
+        config = overideApp(dusk, config);
+        dusk.emit('appCreateBefore', [config]);
+        expandExtrcMethods(dusk, config, true);
         return nativeApp.call(this, config);
     };
-    return sdk;
+    overiddenWX$1(dusk);
+    return dusk;
 }
 
 export { createDuskInstance };
-//# sourceMappingURL=wxsdk.esm.js.map

@@ -6,6 +6,7 @@ import {
 import Dusk, { Options } from './dusk'
 import { assert } from '../share/utils'
 import overiddenWX from './overidden-wx'
+import { expandExtrcMethods } from '../modules/template'
 
 declare let App: Function
 declare let Page: Function
@@ -24,25 +25,34 @@ export default function createDuskInstance (options: Options) {
   )
   isInitComplete = true
 
-  const sdk = new Dusk(options)
+  const dusk = new Dusk(options)
 
   Page = function (config: Object) {
-    config = overidePage(sdk, config)
+    config = overidePage(dusk, config)
+    dusk.emit('pageCreateBefore', [config])
+    expandExtrcMethods(dusk, config as any, true)
+
     return nativePage.call(this, config)
   }
 
   Component = function (config: Object) {
-    config = overideComponent(sdk, config as any)
+    config = overideComponent(dusk, config as any)
+    dusk.emit('ComponentCreateBefore', [config])
+    expandExtrcMethods(dusk, config as any, false)
+
     return nativeComponent.call(this, config)
   }
 
   App = function (config: Object) {
-    config = overideApp(sdk, config)
+    config = overideApp(dusk, config)
+    dusk.emit('appCreateBefore', [config])
+    expandExtrcMethods(dusk, config as any, true)
+
     return nativeApp.call(this, config)
   }
 
   // 包装 wx 相关的类
-  overiddenWX(sdk)
+  overiddenWX(dusk)
 
-  return sdk
+  return dusk
 }

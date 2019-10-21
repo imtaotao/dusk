@@ -64,7 +64,6 @@ function dispatch (
         setData.call(this, data,
           createWraper(callback as any, () => {
             dusk.emit('setData', [data])
-            // dusk.report()
           })
         )
       }

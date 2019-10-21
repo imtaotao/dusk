@@ -1,28 +1,20 @@
 <!--index.wxml-->
-<view class="container" id="page" class="page" bindtap="tapReport">
-    <view class="userinfo">
-        <button class="rp" data-id="1" wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo"
-                bindgetuserinfo="getUserInfo">获取头像昵称
-        </button>
-        <block wx:else>
-            <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-            <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-        </block>
-    </view>
-    <view class="rp" data-id="2" bindtap="jump">跳转到子页面</view>
-    <canvas class="canvas rp" data-q="4"></canvas>
-    <view class="rp usermotto" data-id="3">
-        <text class="user-motto ">{{motto}}</text>
-    </view>
-    <view data-id="123">
-        dsadsa
-        <view data-zareport="param1">
-            456456
-        </view>
-    </view>
-    <view data-page="666">123456789
-        <view data-zareport="qweData">ewqewqewq</view>
-    </view>
+<view
+ class="container"
+ bindtap="duskEvent"
+ data-type='contaner'
+>
+	<view data-type='aaa'>
+		aaaa
+		<view data-type='bbb'>
+			bbbb
+			<view data-type='ccc'>
+				cccc
+				<view data-type='ddd'>
+					dddd
+				</view>
+			</view>
+		</view>
+	</view>
 </view>
 
-<One/>

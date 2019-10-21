@@ -1,2 +1,2 @@
 import Dusk from './dusk';
-export default function overiddenWX(dusk: Dusk): void;
+export default function (dusk: Dusk): void;
