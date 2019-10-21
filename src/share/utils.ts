@@ -1,7 +1,4 @@
-export const warn = (
-  message: string,
-  isWarn?: boolean
-) => {
+export const warn = (message: string, isWarn?: boolean) => {
   message = `\n[SDK warn]: ${message}\n\n`
   if (isWarn) {
     console.warn(message)
@@ -10,10 +7,7 @@ export const warn = (
   throw new Error(message)
 }
 
-export const assert = (
-  condition: boolean,
-  error: string
-) => {
+export const assert = (condition: boolean, error: string) => {
   if (!condition) warn(error)
 }
 
@@ -21,9 +15,7 @@ export const isUndef = v => {
   return v === null || v === undefined
 }
 
-export const once = <T extends (...args: Array<any>) => any>(
-  fn: T
-) => {
+export const once = <T extends (...args: Array<any>) => any>(fn: T) => {
   let first = true
   function wrap (...args) {
     if (!first) return
@@ -33,15 +25,19 @@ export const once = <T extends (...args: Array<any>) => any>(
   return wrap as T
 }
 
-export const callHook = (
-  hooks: Object | undefined | null,
-  name: string,
-  params: Array<any>,
-) => {
-  if (hooks && typeof hooks[name] === 'function') {
-    return hooks[name].apply(hooks, params)
+export const mapObject = <
+  T,
+  K extends (key: keyof T, val: any) => any
+>(obj: T, callback: K) => {
+  const result: {
+    [key in keyof T]: ReturnType<K>
+  } = {} as any
+
+  for (const key in obj) {
+    result[key] = callback(key, obj[key])
   }
-  return null
+
+  return result
 }
 
 export const remove = (list: Array<any>, item:any) => {

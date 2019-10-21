@@ -1,1 +1,2 @@
-export default function overiddenWX(): void;
+import Dusk from './dusk';
+export default function overiddenWX(dusk: Dusk): void;

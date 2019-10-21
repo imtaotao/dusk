@@ -2,7 +2,7 @@ interface EventItem {
     once: Array<Function>;
     normal: Array<Function>;
 }
-interface Listener {
+export interface Listener {
     [key: string]: EventItem;
 }
 export default class Event {

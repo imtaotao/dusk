@@ -1,1 +1,2 @@
-export * from './core';
+import createDuskInstance from './core';
+export { createDuskInstance };

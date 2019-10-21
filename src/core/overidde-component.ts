@@ -1,17 +1,18 @@
-import SDK from './sdk'
-import { createWraper, isPlainObject } from '../share/utils'
+import Dusk from './dusk'
+import { mapObject, createWraper } from '../share/utils'
 
-export interface Page {
-  SDK: SDK
+export interface WxPage {
+  dusk: Dusk
   setData: (data: Object, callback?: Function) => void
 }
 
-export interface Component {
-  SDK: SDK
+export interface WxComponent {
+  dusk: Dusk
   setData: (data: Object, callback?: Function) => void
 }
 
 // 需要包裹的生命周期
+// 这些什么周期都会触发对应的事件，将不再通过 hooks 的方式触发
 type AppLife = 'onLaunch'
   | 'onShow'
   | 'onHide'
@@ -34,40 +35,51 @@ const pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload'
 const componentLifeTime = 'created,attached,ready,moved,detached'
 const appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound'
 
+function injectToComponent <T>(
+  component: (WxPage | WxComponent) & T,
+  modules: T
+) {
+  mapObject(modules, (key, val) => {
+    component[key] = val
+  })
+}
+
 function dispatch (
   name: PageLife| ComponentLife,
-  sdk: SDK,
-  component: Page | Component,
+  dusk: Dusk,
+  component: WxPage | WxComponent,
   isPage: boolean,
   opts?: Object,
 ) {
     if (name === 'onLoad' || name === 'attached') {
-      // 将 SDK 注入到组件中
-      component.SDK = sdk
+      // 将需要的依赖注入到组件中去
+      injectToComponent(component, { dusk })
+
       // 添加依赖
-      sdk.depComponents.set(component, isPage)
+      dusk.depComponents.set(component, isPage)
 
       // 包装 setState 方法，组件的每次更新我们都需要知道
       const setData = component.setData
       component.setData = function (data, callback) {
         setData.call(this, data,
           createWraper(callback as any, () => {
-            sdk.emit('setData', [data])
-            sdk.update()
+            dusk.emit('setData', [data])
+            // dusk.report()
           })
         )
       }
     }
 
+    // 组件销毁的时候移除依赖
     if (name === 'onUnload' || name === 'detached') {
-      sdk.depComponents.delete(component)
+      dusk.depComponents.delete(component)
     }
 
-    sdk.emit(name, [component, opts, isPage])
+    dusk.emit(name, [component, opts, isPage])
 }
 
 export function overideApp (
-  sdk: SDK,
+  dusk: Dusk,
   config: Object
 ) {
   appLifeTime.split(',')
@@ -75,7 +87,7 @@ export function overideApp (
     config[name] = createWraper(
         config[name],
         function (opts?: Object) {
-          sdk.emit(name, [this, opts])
+          dusk.emit(name, [this, opts])
         },
     )
   })
@@ -83,7 +95,7 @@ export function overideApp (
 }
 
 export function overidePage (
-  sdk: SDK,
+  dusk: Dusk,
   config: Object
 ) {
   pageLifeTime.split(',')
@@ -91,7 +103,7 @@ export function overidePage (
     config[name] = createWraper(
         config[name],
         function (opts?: Object) {
-          dispatch(name, sdk, this, true, opts)
+          dispatch(name, dusk, this, true, opts)
         },
     )
   })
@@ -99,7 +111,7 @@ export function overidePage (
 }
 
 export function overideComponent (
-  sdk: SDK,
+  dusk: Dusk,
   config: { lifetimes: Object }
 ) {
   config.lifetimes = config.lifetimes || {}
@@ -112,7 +124,7 @@ export function overideComponent (
       createWraper(
         get(name),
         function (opts?: Object) {
-          dispatch(name, sdk, this, false, opts)
+          dispatch(name, dusk, this, false, opts)
         },
       )
     )

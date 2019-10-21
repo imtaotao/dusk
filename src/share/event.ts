@@ -3,7 +3,7 @@ interface EventItem {
   normal: Array<Function>
 }
 
-interface Listener  {
+export interface Listener  {
   [key: string]: EventItem
 }
 

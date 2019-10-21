@@ -1,2 +1,2 @@
-import SDK, { Options } from './sdk';
-export default function createSDK(options: Options): SDK;
+import Dusk, { Options } from './dusk';
+export default function createDuskInstance(options: Options): Dusk;

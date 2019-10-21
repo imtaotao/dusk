@@ -1,17 +1,19 @@
-import createSDK, {plugins} from './sdk/wxsdk.esm'
+import { createDuskInstance } from './sdk/wxsdk.esm'
 
-const SDK = createSDK()
+console.log(createDuskInstance)
+const SDK = createDuskInstance()
 
-SDK.addPlugin(plugins.firstScreenTime)
-SDK.addPlugin(plugins.autoReport, {
-  projectName: 'mpp',
-  uid: () => 'testUserId',
-  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
-})
-SDK.addPlugin(plugins.tapReport, {
-  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif',
-  isProd: true
-})
+console.log(SDK)
+// SDK.addPlugin(plugins.firstScreenTime)
+// SDK.addPlugin(plugins.autoReport, {
+//   projectName: 'mpp',
+//   uid: () => 'testUserId',
+//   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+// })
+// SDK.addPlugin(plugins.tapReport, {
+//   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif',
+//   isProd: true
+// })
 
 //app.js
 App({

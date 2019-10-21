@@ -7,7 +7,6 @@
     "noImplicitAny": false,
     "noImplicitReturns": true,
     "removeComments": true,
-    "outDir": "build",
     "inlineSourceMap": true,
     "baseUrl": ".",
     "strictNullChecks": true,

@@ -5,6 +5,7 @@ const rm = require('rimraf').sync
 const babel = require('rollup-plugin-babel')
 const cmd = require('rollup-plugin-commonjs')
 const cleanup = require('rollup-plugin-cleanup')
+const replace = require('rollup-plugin-replace')
 const { terser } = require('rollup-plugin-terser')
 const resolve = require('rollup-plugin-node-resolve')
 const typescript = require('rollup-plugin-typescript2')
@@ -39,6 +40,12 @@ const uglifyCjs = {
   },
 }
 
+const createReplacePlugin = () => {
+  return replace({
+    __VERSION__: `'${require('./package.json').version}'`,
+  })
+}
+
 async function build (cfg, type, needUglify, sourcemap = false) {
   cfg.output.sourcemap = sourcemap
 
@@ -57,6 +64,7 @@ async function build (cfg, type, needUglify, sourcemap = false) {
         cacheRoot: path.resolve(__dirname, `.cache_${type}`),
       }),
       cmd(),
+      createReplacePlugin(),
     ]
   }
 

@@ -1,2 +1,5 @@
-export * from './core'
-// export * from './plugins'
+import createDuskInstance from './core'
+
+export {
+  createDuskInstance
+}
