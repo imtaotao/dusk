@@ -1,13 +1,13 @@
-import { createDuskInstance } from './sdk/wxsdk.esm'
+import { createDuskInstance, plugins } from './sdk/wxsdk.esm'
 
-console.log(createDuskInstance)
-const SDK = createDuskInstance()
-
-SDK.Template.on('event', (type, value, g) => {
-  console.log(type, value)
-  console.log(g().event.mark)
+const url = 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+const Dusk = createDuskInstance()
+Dusk.addPlugin(plugins.listenerButton, {
+  sendData (data, detail) {
+    console.log(data)
+  }
 })
-console.log(SDK)
+
 // SDK.addPlugin(plugins.firstScreenTime)
 // SDK.addPlugin(plugins.autoReport, {
 //   projectName: 'mpp',

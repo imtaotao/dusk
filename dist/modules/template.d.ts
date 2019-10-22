@@ -17,7 +17,7 @@ interface Touches {
     force: number;
     identifier: number;
 }
-interface WxEvent {
+export interface WxEvent {
     type: string;
     target: Target;
     timeStamp: number;

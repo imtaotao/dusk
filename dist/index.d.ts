@@ -1,2 +1,3 @@
+import * as plugins from './plugins';
 import createDuskInstance from './core';
-export { createDuskInstance };
+export { plugins, createDuskInstance };

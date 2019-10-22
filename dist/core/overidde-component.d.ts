@@ -1,6 +1,7 @@
 import Dusk from './dusk';
 export interface WxPage {
     dusk: Dusk;
+    route: string;
     setData: (data: Object, callback?: Function) => void;
 }
 export interface WxComponent {

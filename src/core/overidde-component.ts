@@ -3,6 +3,7 @@ import { mapObject, createWraper } from '../share/utils'
 
 export interface WxPage {
   dusk: Dusk
+  route: string
   setData: (data: Object, callback?: Function) => void
 }
 

@@ -1,6 +1,7 @@
 import { once, createWraper } from '../share/utils'
 import { WxPage } from '../core/overidde-component'
 
+declare const wx: any
 declare const getCurrentPages: () => Array<WxPage>
 
 export default {

@@ -55,6 +55,28 @@ var createWraper = function (target, before, after) {
     return wrap;
 };
 
+function listenerButton(dusk, options) {
+    assert(!!options, 'The [options] must be a object');
+    assert(typeof options.sendData === 'function', 'You must defined [sendData] function');
+    dusk.Template.on('event', function (type, value, detail) {
+        options.sendData({
+            tp: 0,
+            sp: 'stat',
+            t: Date.now(),
+            bm: 'clickButton',
+            exd: { type: type, value: value },
+            unid: dusk.Utils.unid(),
+            p: (dusk.Utils.getCurrentPage() || { route: '' }).route,
+        }, detail);
+    });
+}
+
+
+
+var index = /*#__PURE__*/Object.freeze({
+  listenerButton: listenerButton
+});
+
 var pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload';
 var componentLifeTime = 'created,attached,ready,moved,detached';
 var appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound';
@@ -384,4 +406,4 @@ function createDuskInstance(options) {
     return dusk;
 }
 
-export { createDuskInstance };
+export { createDuskInstance, index as plugins };
