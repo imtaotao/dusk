@@ -6,12 +6,24 @@ import Template from '../modules/template'
 import { warn, assert, isUndef } from 'src/share/utils'
 import { WxPage, WxComponent } from './overidde-component'
 
-export interface Options {}
+export interface Options {
+  url: string
+}
+
 declare const __VERSION__: string
+
+function filterOptions (options: Options) {
+  assert(
+    typeof options.url === 'string',
+    'The report url must be a string',
+  )
+
+  return options
+}
 
 // 核心层只负责监听，简化逻辑，然后抛出事件，一个模块为一个事件队列
 export default class Dusk extends Event {
-  private options: Options
+  public options: Options
  
   public version = __VERSION__
   // 工具类
@@ -33,7 +45,7 @@ export default class Dusk extends Event {
 
   public constructor (options: Options) {
     super()
-    this.options = options
+    this.options = filterOptions(options || {})
   }
 
   public report (type:string, val: any) {

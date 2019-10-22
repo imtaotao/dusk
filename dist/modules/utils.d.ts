@@ -5,5 +5,6 @@ declare const _default: {
     uuid(): string;
     unid(): string;
     getCurrentPage(): WxPage | null;
+    report(url: string, data: any, method: "GET" | "POST", header?: Object): Promise<void>;
 };
 export default _default;

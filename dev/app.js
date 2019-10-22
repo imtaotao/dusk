@@ -1,10 +1,12 @@
 import { createDuskInstance, plugins } from './sdk/wxsdk.esm'
 
-const url = 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
-const Dusk = createDuskInstance()
+const Dusk = createDuskInstance({
+  url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
+})
 Dusk.addPlugin(plugins.listenerButton, {
   sendData (data, detail) {
     console.log(data)
+    return data
   }
 })
 

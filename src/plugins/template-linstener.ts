@@ -15,7 +15,7 @@ interface DetailResult {
 }
 
 export function listenerButton (dusk: Dusk, options: Options) {
-  assert(!!options, 'The [options] must be a object')
+  assert(!!options, 'The [options] must be an object')
 
   assert(
     typeof options.sendData === 'function',
@@ -27,7 +27,7 @@ export function listenerButton (dusk: Dusk, options: Options) {
     value: any,
     detail: () => DetailResult
   ) => {
-    options.sendData(
+    const data = options.sendData(
       {
         tp: 0,
         sp: 'stat',
@@ -39,5 +39,12 @@ export function listenerButton (dusk: Dusk, options: Options) {
       },
       detail,
     )
+
+    assert(
+      typeof data === 'object',
+      'the report data must be an object'
+    )
+
+    dusk.Utils.report(dusk.options.url, data, 'GET')
   })
 }

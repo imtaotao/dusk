@@ -56,10 +56,10 @@ var createWraper = function (target, before, after) {
 };
 
 function listenerButton(dusk, options) {
-    assert(!!options, 'The [options] must be a object');
+    assert(!!options, 'The [options] must be an object');
     assert(typeof options.sendData === 'function', 'You must defined [sendData] function');
     dusk.Template.on('event', function (type, value, detail) {
-        options.sendData({
+        var data = options.sendData({
             tp: 0,
             sp: 'stat',
             t: Date.now(),
@@ -68,6 +68,8 @@ function listenerButton(dusk, options) {
             unid: dusk.Utils.unid(),
             p: (dusk.Utils.getCurrentPage() || { route: '' }).route,
         }, detail);
+        assert(typeof data === 'object', 'the report data must be an object');
+        dusk.Utils.report(dusk.options.url, data, 'GET');
     });
 }
 
@@ -243,6 +245,12 @@ var Utils = {
             ? pages[pages.length - 1]
             : null;
     },
+    report: function (url, data, method, header) {
+        if (header === void 0) { header = {}; }
+        return new Promise(function (resolve) {
+            wx.request({ url: url, data: data, method: method, header: header, complete: resolve });
+        });
+    },
 };
 
 var Router = (function (_super) {
@@ -302,6 +310,10 @@ var Template = (function (_super) {
     return Template;
 }(Event));
 
+function filterOptions(options) {
+    assert(typeof options.url === 'string', 'The report url must be a string');
+    return options;
+}
 var Dusk = (function (_super) {
     __extends(Dusk, _super);
     function Dusk(options) {
@@ -315,7 +327,7 @@ var Dusk = (function (_super) {
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
         _this.installedPlugins = new Set();
-        _this.options = options;
+        _this.options = filterOptions(options || {});
         return _this;
     }
     Dusk.prototype.report = function (type, val) {

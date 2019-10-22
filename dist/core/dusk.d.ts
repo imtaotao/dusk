@@ -4,9 +4,10 @@ import NetWork from '../modules/network';
 import Template from '../modules/template';
 import { WxPage, WxComponent } from './overidde-component';
 export interface Options {
+    url: string;
 }
 export default class Dusk extends Event {
-    private options;
+    options: Options;
     version: string;
     Utils: {
         once: <T extends (...args: any[]) => any>(fn: T) => T;
@@ -14,6 +15,7 @@ export default class Dusk extends Event {
         uuid(): string;
         unid(): string;
         getCurrentPage(): WxPage | null;
+        report(url: string, data: any, method: "GET" | "POST", header?: Object): Promise<void>;
     };
     Router: Router;
     NetWork: NetWork;
