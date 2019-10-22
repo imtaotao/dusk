@@ -24,6 +24,11 @@ export default {
     return `za-${ramdomNum}-${oxtimestamp}`
   },
 
+  // 返回 6 位随机 id
+  randomId (max = 1000000, min = 0, fraction = 0) {
+    return Number(Math.random() * (max - min) + min).toFixed(fraction)
+  },
+
   getCurrentPage () {
     const pages = getCurrentPages()
     return Array.isArray(pages) && pages.length > 0

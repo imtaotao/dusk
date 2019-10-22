@@ -2,6 +2,27 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function getLegalTimeType(dusk) {
+    var timeType = dusk.Utils.randomId();
+    return dusk.timeStack[timeType]
+        ? getLegalTimeType(dusk)
+        : timeType;
+}
+function recordRequestTime(dusk) {
+    dusk.NetWork.on('request', function (options) {
+        var timeType = getLegalTimeType(dusk);
+        dusk.time(timeType);
+        if (options.url !== dusk.options.url) {
+            if (options.record) {
+                options.complete = dusk.Utils.createWraper(options.complete, function () {
+                    var duration = dusk.timeEnd(timeType);
+                    console.log(options.url, duration);
+                });
+            }
+        }
+    });
+}
+
 var warn = function (message, isWarn) {
     message = "\n[SDK warn]: " + message + "\n\n";
     if (isWarn) {
@@ -80,6 +101,7 @@ function listenerButton(dusk, options) {
 
 
 var index = /*#__PURE__*/Object.freeze({
+  recordRequestTime: recordRequestTime,
   listenerButton: listenerButton
 });
 
@@ -243,6 +265,12 @@ var Utils = {
         var oxtimestamp = parseInt(Date.now()).toString(16);
         return "za-" + ramdomNum + "-" + oxtimestamp;
     },
+    randomId: function (max, min, fraction) {
+        if (max === void 0) { max = 1000000; }
+        if (min === void 0) { min = 0; }
+        if (fraction === void 0) { fraction = 0; }
+        return Number(Math.random() * (max - min) + min).toFixed(fraction);
+    },
     getCurrentPage: function () {
         var pages = getCurrentPages();
         return Array.isArray(pages) && pages.length > 0
@@ -375,10 +403,16 @@ var Dusk = (function (_super) {
 
 var nativeWX = wx;
 function overiddenWX(dusk, rewrite) {
-    var routerMethos = 'reLaunch,switchTab,navigateTo,redirectTo';
-    routerMethos.split(',').forEach(function (methodName) {
+    var routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo';
+    routerMethods.split(',').forEach(function (methodName) {
         rewrite(methodName, function (options) {
             dusk.Router.emit(methodName, [options]);
+        });
+    });
+    var netWorkMethods = 'request';
+    netWorkMethods.split(',').forEach(function (methodName) {
+        rewrite(methodName, function (options) {
+            dusk.NetWork.emit(methodName, options);
         });
     });
 }

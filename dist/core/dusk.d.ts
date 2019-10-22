@@ -14,6 +14,7 @@ export default class Dusk extends Event {
         createWraper: <T_1 extends (...args: any[]) => any>(target?: T_1 | undefined, before?: T_1 | undefined, after?: T_1 | undefined) => T_1;
         uuid(): string;
         unid(): string;
+        randomId(max?: number, min?: number, fraction?: number): string;
         getCurrentPage(): WxPage | null;
         report(url: string, data: any, method: "GET" | "POST", header?: Object): Promise<void>;
     };
@@ -21,7 +22,7 @@ export default class Dusk extends Event {
     NetWork: NetWork;
     Template: Template;
     types: Array<string>;
-    private timeStack;
+    timeStack: any;
     depComponents: Map<WxPage | WxComponent, boolean>;
     installedPlugins: Set<(...args: any[]) => any>;
     constructor(options: Options);

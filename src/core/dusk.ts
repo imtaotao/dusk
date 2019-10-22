@@ -37,7 +37,7 @@ export default class Dusk extends Event {
 
   public types: Array<string> = []
  
-  private timeStack = Object.create(null)
+  public timeStack = Object.create(null)
  
   public depComponents = new Map<WxPage | WxComponent, boolean>()
 

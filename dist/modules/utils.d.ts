@@ -4,6 +4,7 @@ declare const _default: {
     createWraper: <T_1 extends (...args: any[]) => any>(target?: T_1 | undefined, before?: T_1 | undefined, after?: T_1 | undefined) => T_1;
     uuid(): string;
     unid(): string;
+    randomId(max?: number, min?: number, fraction?: number): string;
     getCurrentPage(): WxPage | null;
     report(url: string, data: any, method: "GET" | "POST", header?: Object): Promise<void>;
 };

@@ -6,11 +6,18 @@ const nativeWX = wx
 
 function overiddenWX (dusk: Dusk, rewrite: (string, Function) => void) {
   // 导航相关方法
-  const routerMethos = 'reLaunch,switchTab,navigateTo,redirectTo'
-
-  routerMethos.split(',').forEach(methodName => {
+  const routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo'
+  routerMethods.split(',').forEach(methodName => {
     rewrite(methodName, options => {
       dusk.Router.emit(methodName, [options])
+    })
+  })
+
+  // 网络请求相关方法
+  const netWorkMethods = 'request'
+  netWorkMethods.split(',').forEach(methodName => {
+    rewrite(methodName, options => {
+      dusk.NetWork.emit(methodName, options)
     })
   })
 }
