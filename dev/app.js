@@ -1,8 +1,9 @@
 import createStore from './store'
-import { createDuskInstance, plugins } from './sdk/wxsdk.esm'
+import { createDusk, plugins } from './sdk/wxsdk.esm'
 
 const store = createStore()
-const Dusk = createDuskInstance({
+
+const Dusk = createDusk(App, Page, Component, {
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
 

@@ -80,6 +80,7 @@ Page({
     }
   },
   onShow() {
+    console.log(this)
     this.queryMultipleNodes()
     setTimeout(() => {
       this.setData({

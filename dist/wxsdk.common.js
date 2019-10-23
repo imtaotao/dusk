@@ -468,12 +468,12 @@ function overiddenWX$1 (dusk) {
     wx = Object.assign({}, nativeWX, overrideClass);
 }
 
-var nativeApp = App;
-var nativePage = Page;
-var nativeComponent = Component;
 var isInitComplete = false;
-function createDuskInstance(options) {
+function createDusk(nativeApp, nativePage, nativeComponent, options) {
     assert(!isInitComplete, 'Can\'t allow repeat initialize.');
+    assert(typeof nativeApp === 'function', 'the [App] must be a function');
+    assert(typeof nativePage === 'function', 'the [Page] must be a function');
+    assert(typeof nativeComponent === 'function', 'the [Component] must be a function');
     isInitComplete = true;
     var dusk = new Dusk(options);
     Page = function (config) {
@@ -498,5 +498,5 @@ function createDuskInstance(options) {
     return dusk;
 }
 
-exports.createDuskInstance = createDuskInstance;
+exports.createDusk = createDusk;
 exports.plugins = index;

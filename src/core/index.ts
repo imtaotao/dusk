@@ -12,17 +12,34 @@ declare let App: Function
 declare let Page: Function
 declare let Component: Function
 
-const nativeApp = App
-const nativePage = Page
-const nativeComponent = Component
-
 let isInitComplete = false
 
-export default function createDuskInstance (options: Options) {
+export default function createDusk (
+  nativeApp: Function,
+  nativePage: Function,
+  nativeComponent: Function,
+  options: Options,
+) {
   assert(
     !isInitComplete,
     'Can\'t allow repeat initialize.',
   )
+
+  assert(
+    typeof nativeApp === 'function',
+    'the [App] must be a function'
+  )
+
+  assert(
+    typeof nativePage === 'function',
+    'the [Page] must be a function'
+  )
+
+  assert(
+    typeof nativeComponent === 'function',
+    'the [Component] must be a function'
+  )
+
   isInitComplete = true
 
   const dusk = new Dusk(options)

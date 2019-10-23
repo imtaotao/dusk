@@ -1,7 +1,7 @@
 import * as plugins from './plugins'
-import createDuskInstance from './core'
+import createDusk from './core'
 
 export {
   plugins,
-  createDuskInstance
+  createDusk,
 }
