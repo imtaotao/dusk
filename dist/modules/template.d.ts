@@ -40,6 +40,8 @@ interface ExpandMethods {
 }
 export declare function expandExtrcMethods(dusk: Dusk, config: ExpandMethods & Object, isPage: boolean): void;
 export default class Template extends Event {
+    private dusk;
+    constructor(dusk: Dusk);
     acceptDuskEvent(component: WxPage | WxComponent, e: WxEvent, isPage: boolean): void;
 }
 export {};

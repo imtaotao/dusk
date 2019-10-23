@@ -14,19 +14,22 @@ export interface WxComponent {
 
 // 需要包裹的生命周期
 // 这些什么周期都会触发对应的事件，将不再通过 hooks 的方式触发
-type AppLife = 'onLaunch'
+type AppLife =
+    'onLaunch'
   | 'onShow'
   | 'onHide'
   | 'onError'
   | 'onPageNotFound'
 
-type PageLife = 'onLoad'
+type PageLife =
+    'onLoad'
   | 'onShow'
   | 'onReady'
   | 'onHide'
   | 'onUnload'
 
-type ComponentLife = 'created'
+type ComponentLife =
+    'created'
   | 'attached'
   | 'ready'
   | 'moved'

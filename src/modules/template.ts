@@ -70,6 +70,13 @@ function getResult (event: WxEvent) {
 }
 
 export default class Template extends Event {
+  private dusk: Dusk
+
+  public constructor (dusk: Dusk) {
+    super()
+    this.dusk = dusk
+  }
+
   public acceptDuskEvent (component: WxPage | WxComponent, e: WxEvent, isPage: boolean) {
     const type = e.type
     const value = getResult(e)

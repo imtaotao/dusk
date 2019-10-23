@@ -59,71 +59,6 @@ var createWraper = function (target, before, after) {
     return wrap;
 };
 
-function autoSendRequest(dusk, filterData) {
-    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from autoRequest plugin");
-    dusk.on('report', function (type, value) {
-        var data = null;
-        var genReportData = function () {
-            var _a;
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
-            }
-            assert(args.length === 4, 'The parameter is invalid');
-            return data = (_a = dusk.NetWork).baseReportData.apply(_a, args);
-        };
-        filterData(type, value, genReportData);
-        if (!isUndef(data)) {
-            dusk.NetWork.report(dusk.options.url, data, 'GET');
-        }
-    });
-}
-
-function getLegalTimeType(dusk) {
-    var timeType = dusk.Utils.randomId();
-    return dusk.timeStack[timeType]
-        ? getLegalTimeType(dusk)
-        : timeType;
-}
-function recordRequestTime(dusk, filterData) {
-    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from recordRequestTime plugin");
-    dusk.NetWork.on('request', function (options) {
-        if (options.record) {
-            var timeType_1 = getLegalTimeType(dusk);
-            dusk.time(timeType_1);
-            options.complete = dusk.Utils.createWraper(options.complete, function () {
-                var data = dusk.NetWork.baseReportData(5, 'stat', 'requestTime', {
-                    url: options.url,
-                    duration: dusk.timeEnd(timeType_1),
-                });
-                filterData(data, function (destData) {
-                    assert(typeof destData === 'object', 'the report data must be an object');
-                    return dusk.NetWork.report(dusk.options.url, destData, 'GET');
-                });
-            });
-        }
-    });
-}
-
-function listenerButton(dusk, filterData) {
-    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from listenereButton plugin");
-    dusk.Template.on('event', function (type, value, detail) {
-        var data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
-        filterData(data, function (destData) {
-            assert(typeof destData === 'object', 'the report data must be an object');
-            return dusk.NetWork.report(dusk.options.url, destData, 'GET');
-        }, detail);
-    });
-}
-
-
-
-var index = /*#__PURE__*/Object.freeze({
-  autoSendRequest: autoSendRequest,
-  recordRequestTime: recordRequestTime,
-  listenerButton: listenerButton
-});
-
 var pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload';
 var componentLifeTime = 'created,attached,ready,moved,detached';
 var appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound';
@@ -359,8 +294,10 @@ function getResult(event) {
 }
 var Template = (function (_super) {
     __extends(Template, _super);
-    function Template() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function Template(dusk) {
+        var _this = _super.call(this) || this;
+        _this.dusk = dusk;
+        return _this;
     }
     Template.prototype.acceptDuskEvent = function (component, e, isPage) {
         var type = e.type;
@@ -386,9 +323,9 @@ var Dusk = (function (_super) {
         var _this = _super.call(this) || this;
         _this.version = '0.0.1';
         _this.Utils = Utils;
-        _this.Template = new Template();
         _this.Router = new Router(_this);
         _this.NetWork = new NetWork(_this);
+        _this.Template = new Template(_this);
         _this.types = [];
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
@@ -497,6 +434,71 @@ function createDusk(nativeApp, nativePage, nativeComponent, options) {
     overiddenWX$1(dusk);
     return dusk;
 }
+
+function autoSendRequest(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from autoRequest plugin");
+    dusk.on('report', function (type, value) {
+        var data = null;
+        var genReportData = function () {
+            var _a;
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            assert(args.length === 4, 'The parameter is invalid');
+            return data = (_a = dusk.NetWork).baseReportData.apply(_a, args);
+        };
+        filterData(type, value, genReportData);
+        if (!isUndef(data)) {
+            dusk.NetWork.report(dusk.options.url, data, 'GET');
+        }
+    });
+}
+
+function getLegalTimeType(dusk) {
+    var timeType = dusk.Utils.randomId();
+    return dusk.timeStack[timeType]
+        ? getLegalTimeType(dusk)
+        : timeType;
+}
+function recordRequestTime(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from recordRequestTime plugin");
+    dusk.NetWork.on('request', function (options) {
+        if (options.record) {
+            var timeType_1 = getLegalTimeType(dusk);
+            dusk.time(timeType_1);
+            options.complete = dusk.Utils.createWraper(options.complete, function () {
+                var data = dusk.NetWork.baseReportData(5, 'stat', 'requestTime', {
+                    url: options.url,
+                    duration: dusk.timeEnd(timeType_1),
+                });
+                filterData(data, function (destData) {
+                    assert(typeof destData === 'object', 'the report data must be an object');
+                    return dusk.NetWork.report(dusk.options.url, destData, 'GET');
+                });
+            });
+        }
+    });
+}
+
+function listenerButton(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from listenereButton plugin");
+    dusk.Template.on('event', function (type, value, detail) {
+        var data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
+        filterData(data, function (destData) {
+            assert(typeof destData === 'object', 'the report data must be an object');
+            return dusk.NetWork.report(dusk.options.url, destData, 'GET');
+        }, detail);
+    });
+}
+
+
+
+var index = /*#__PURE__*/Object.freeze({
+  autoSendRequest: autoSendRequest,
+  recordRequestTime: recordRequestTime,
+  listenerButton: listenerButton
+});
 
 exports.createDusk = createDusk;
 exports.plugins = index;

@@ -17,9 +17,9 @@ export default class Dusk extends Event {
         randomId(max?: number, min?: number, fraction?: number): string;
         getCurrentPage(): WxPage | null;
     };
-    Template: Template;
     Router: Router;
     NetWork: NetWork;
+    Template: Template;
     types: Array<string>;
     timeStack: any;
     depComponents: Map<WxPage | WxComponent, boolean>;

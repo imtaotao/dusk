@@ -1,5 +1,5 @@
-import * as plugins from './plugins'
 import createDusk from './core'
+import * as plugins from './plugins'
 
 export {
   plugins,

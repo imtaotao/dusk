@@ -30,11 +30,12 @@ export default class Dusk extends Event {
   // 工具类
   public Utils = Utils
 
-  public Template = new Template()
-
+  
   public Router = new Router(this)
-
+  
   public NetWork = new NetWork(this)
+
+  public Template = new Template(this)
 
   public types: Array<string> = []
 
