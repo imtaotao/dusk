@@ -1,5 +1,7 @@
 // 监听每个请求的时长
 import Dusk from '../core/dusk'
+import { assert } from '../share/utils'
+import { ReportNextResult } from './index'
 import { RequestOptions } from '../modules/network'
 
 // 得到一个唯一的 type
@@ -21,8 +23,28 @@ export function recordRequestTime (dusk: Dusk) {
       options.complete = dusk.Utils.createWraper(
         options.complete,
         () => {
-          const duration = dusk.timeEnd(timeType)
-          console.log(options.url, duration)
+          const data = dusk.Utils.baseReportData(
+            5,
+            'stat',
+            'requestTime',
+            {
+              url: options.url,
+              duration: dusk.timeEnd(timeType),
+            },
+          )
+
+          dusk.NetWork.emit('report',
+            [
+              data,
+              endData => {
+                assert(
+                  typeof endData === 'object',
+                  'the report data must be an object'
+                )
+                return dusk.Utils.report(dusk.options.url, endData, 'GET')
+              },
+            ] as ReportNextResult,
+          )
         }
       )
     }

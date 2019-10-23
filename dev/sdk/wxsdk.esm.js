@@ -1,22 +1,3 @@
-function getLegalTimeType(dusk) {
-    var timeType = dusk.Utils.randomId();
-    return dusk.timeStack[timeType]
-        ? getLegalTimeType(dusk)
-        : timeType;
-}
-function recordRequestTime(dusk) {
-    dusk.NetWork.on('request', function (options) {
-        if (options.record) {
-            var timeType_1 = getLegalTimeType(dusk);
-            dusk.time(timeType_1);
-            options.complete = dusk.Utils.createWraper(options.complete, function () {
-                var duration = dusk.timeEnd(timeType_1);
-                console.log(options.url, duration);
-            });
-        }
-    });
-}
-
 var warn = function (message, isWarn) {
     message = "\n[SDK warn]: " + message + "\n\n";
     if (isWarn) {
@@ -74,21 +55,45 @@ var createWraper = function (target, before, after) {
     return wrap;
 };
 
-function listenerButton(dusk, options) {
-    assert(!!options, 'The [options] must be an object');
-    assert(typeof options.sendData === 'function', 'You must defined [sendData] function');
+function getLegalTimeType(dusk) {
+    var timeType = dusk.Utils.randomId();
+    return dusk.timeStack[timeType]
+        ? getLegalTimeType(dusk)
+        : timeType;
+}
+function recordRequestTime(dusk) {
+    dusk.NetWork.on('request', function (options) {
+        if (options.record) {
+            var timeType_1 = getLegalTimeType(dusk);
+            dusk.time(timeType_1);
+            options.complete = dusk.Utils.createWraper(options.complete, function () {
+                var data = dusk.Utils.baseReportData(5, 'stat', 'requestTime', {
+                    url: options.url,
+                    duration: dusk.timeEnd(timeType_1),
+                });
+                dusk.NetWork.emit('report', [
+                    data,
+                    function (endData) {
+                        assert(typeof endData === 'object', 'the report data must be an object');
+                        return dusk.Utils.report(dusk.options.url, endData, 'GET');
+                    },
+                ]);
+            });
+        }
+    });
+}
+
+function listenerButton(dusk) {
     dusk.Template.on('event', function (type, value, detail) {
-        var data = options.sendData({
-            tp: 0,
-            sp: 'stat',
-            t: Date.now(),
-            bm: 'clickButton',
-            exd: { type: type, value: value },
-            unid: dusk.Utils.unid(),
-            p: (dusk.Utils.getCurrentPage() || { route: '' }).route,
-        }, detail);
-        assert(typeof data === 'object', 'the report data must be an object');
-        dusk.Utils.report(dusk.options.url, data, 'GET');
+        var data = dusk.Utils.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
+        dusk.Template.emit('report', [
+            data,
+            function (endData) {
+                assert(typeof endData === 'object', 'the report data must be an object');
+                return dusk.Utils.report(dusk.options.url, endData, 'GET');
+            },
+            detail,
+        ]);
     });
 }
 
@@ -270,6 +275,17 @@ var Utils = {
         return Array.isArray(pages) && pages.length > 0
             ? pages[pages.length - 1]
             : null;
+    },
+    baseReportData: function (tp, sp, moduleTag, expandData) {
+        return {
+            tp: tp,
+            sp: sp,
+            t: Date.now(),
+            bm: moduleTag,
+            unid: this.unid(),
+            exd: expandData || {},
+            p: (this.getCurrentPage() || { route: '' }).route,
+        };
     },
     report: function (url, data, method, header) {
         if (header === void 0) { header = {}; }
