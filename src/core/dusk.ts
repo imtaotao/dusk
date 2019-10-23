@@ -37,9 +37,9 @@ export default class Dusk extends Event {
   public NetWork = new NetWork(this)
 
   public types: Array<string> = []
- 
+
   public timeStack = Object.create(null)
- 
+
   public depComponents = new Map<WxPage | WxComponent, boolean>()
 
   public installedPlugins = new Set<(...args: Array<any>) => any>()

@@ -41,12 +41,12 @@ export function recordRequestTime (
             },
           )
 
-          filterData(data, endData => {
+          filterData(data, destData => {
             assert(
-              typeof endData === 'object',
+              typeof destData === 'object',
               'the report data must be an object'
             )
-            return dusk.NetWork.report(dusk.options.url, endData, 'GET')
+            return dusk.NetWork.report(dusk.options.url, destData, 'GET')
           })
         }
       )

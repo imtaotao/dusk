@@ -33,12 +33,12 @@ export function listenerButton (
     // 第三个参数可有可无，为其他数据
     filterData(
       data,
-      endData => {
+      destData => {
         assert(
-          typeof endData === 'object',
+          typeof destData === 'object',
           'the report data must be an object'
         )
-        return dusk.NetWork.report(dusk.options.url, endData, 'GET')
+        return dusk.NetWork.report(dusk.options.url, destData, 'GET')
       },
       detail,
     )

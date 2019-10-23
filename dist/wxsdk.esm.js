@@ -92,9 +92,9 @@ function recordRequestTime(dusk, filterData) {
                     url: options.url,
                     duration: dusk.timeEnd(timeType_1),
                 });
-                filterData(data, function (endData) {
-                    assert(typeof endData === 'object', 'the report data must be an object');
-                    return dusk.NetWork.report(dusk.options.url, endData, 'GET');
+                filterData(data, function (destData) {
+                    assert(typeof destData === 'object', 'the report data must be an object');
+                    return dusk.NetWork.report(dusk.options.url, destData, 'GET');
                 });
             });
         }
@@ -105,9 +105,9 @@ function listenerButton(dusk, filterData) {
     assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from listenereButton plugin");
     dusk.Template.on('event', function (type, value, detail) {
         var data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
-        filterData(data, function (endData) {
-            assert(typeof endData === 'object', 'the report data must be an object');
-            return dusk.NetWork.report(dusk.options.url, endData, 'GET');
+        filterData(data, function (destData) {
+            assert(typeof destData === 'object', 'the report data must be an object');
+            return dusk.NetWork.report(dusk.options.url, destData, 'GET');
         }, detail);
     });
 }
