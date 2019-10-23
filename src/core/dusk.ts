@@ -3,7 +3,7 @@ import Utils from '../modules/utils'
 import Router from '../modules/router'
 import NetWork from '../modules/network'
 import Template from '../modules/template'
-import { warn, assert, isUndef } from 'src/share/utils'
+import { warning, assert, isUndef } from 'src/share/utils'
 import { WxPage, WxComponent } from './overidde-component'
 
 export interface Options {
@@ -49,6 +49,12 @@ export default class Dusk extends Event {
     this.options = filterOptions(options || {})
   }
 
+  public addType (type: string) {
+    if (!this.types.includes(type)) {
+      this.types.push(type)
+    }
+  }
+
   public report (type:string, val: any) {
     assert(
       this.types.includes(type),
@@ -75,7 +81,7 @@ export default class Dusk extends Event {
       return
     }
 
-    warn(`Timer [${type}] already exists.`, true)
+    warning(`Timer [${type}] already exists.`, true)
   }
 
   public timeEnd (type: string, fn?: (duration: number) => void) : number | null {
@@ -93,7 +99,7 @@ export default class Dusk extends Event {
       }
     }
 
-    warn(`Timer [${type}] already exists.`)
+    warning(`Timer [${type}] already exists.`)
     return null
   }
 }

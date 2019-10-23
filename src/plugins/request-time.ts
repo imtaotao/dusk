@@ -12,7 +12,12 @@ function getLegalTimeType (dusk: Dusk) : string {
     : timeType
 }
 
-export function recordRequestTime (dusk: Dusk) {
+export function recordRequestTime (dusk: Dusk, filterData: Function) {
+  assert(
+    typeof filterData === 'function',
+    `The [filterData] must be a function, but now is a [${typeof filterData}].`
+  )
+
   dusk.NetWork.on('request', (options: RequestOptions) => {
     // 过滤掉不需要记录的请求
     if (options.record) {
@@ -33,18 +38,16 @@ export function recordRequestTime (dusk: Dusk) {
             },
           )
 
-          dusk.NetWork.emit('report',
-            [
-              data,
-              endData => {
-                assert(
-                  typeof endData === 'object',
-                  'the report data must be an object'
-                )
-                return dusk.NetWork.report(dusk.options.url, endData, 'GET')
-              },
-            ] as ReportNextResult,
-          )
+          filterData([
+            data,
+            endData => {
+              assert(
+                typeof endData === 'object',
+                'the report data must be an object'
+              )
+              return dusk.NetWork.report(dusk.options.url, endData, 'GET')
+            },
+          ] as ReportNextResult)
         }
       )
     }

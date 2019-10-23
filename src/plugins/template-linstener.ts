@@ -11,7 +11,12 @@ interface DetailResult {
   component: WxPage | WxComponent
 }
 
-export function listenerButton (dusk: Dusk) {
+export function listenerButton (dusk: Dusk, filterData: Function) {
+  assert(
+    typeof filterData === 'function',
+    `The [filterData] must be a function, but now is a [${typeof filterData}].`
+  )
+
   dusk.Template.on('event', (
     type: string,
     value: any,
@@ -23,19 +28,17 @@ export function listenerButton (dusk: Dusk) {
     // 第一个参数默认为 data
     // 第二个参数为 next 函数
     // 第三个参数可有可无，为其他数据
-    dusk.Template.emit('report',
-      [
-        data,
-        endData => {
-          assert(
-            typeof endData === 'object',
-            'the report data must be an object'
-          )
+    filterData([
+      data,
+      endData => {
+        assert(
+          typeof endData === 'object',
+          'the report data must be an object'
+        )
 
-          return dusk.NetWork.report(dusk.options.url, endData, 'GET')
-        },
-        detail,
-      ] as ReportNextResult,
-    )
+        return dusk.NetWork.report(dusk.options.url, endData, 'GET')
+      },
+      detail,
+    ] as ReportNextResult)
   })
 }

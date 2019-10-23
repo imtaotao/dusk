@@ -65,7 +65,7 @@ function dispatch (
       component.setData = function (data, callback) {
         setData.call(this, data,
           createWraper(callback as any, () => {
-            dusk.emit('setData', [data])
+            dusk.emit('setData', [component, data, config, isPage])
           })
         )
       }

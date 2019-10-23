@@ -1,6 +1,6 @@
-var warn = function (message, isWarn) {
-    message = "\n[SDK warn]: " + message + "\n\n";
-    if (isWarn) {
+var warning = function (message, iswarning) {
+    message = "\n[SDK warning]: " + message + "\n\n";
+    if (iswarning) {
         console.warn(message);
         return;
     }
@@ -8,7 +8,7 @@ var warn = function (message, isWarn) {
 };
 var assert = function (condition, error) {
     if (!condition)
-        warn(error);
+        warning(error);
 };
 var isUndef = function (v) {
     return v === null || v === undefined;
@@ -55,13 +55,34 @@ var createWraper = function (target, before, after) {
     return wrap;
 };
 
+function autoSendRequest(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "].");
+    dusk.on('report', function (type, value) {
+        var data = null;
+        var genReportData = function () {
+            var _a;
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            assert(args.length === 4, 'The parameter is invalid');
+            return data = (_a = dusk.NetWork).baseReportData.apply(_a, args);
+        };
+        filterData(type, value, genReportData);
+        if (!isUndef(data)) {
+            dusk.NetWork.report(dusk.options.url, data, 'GET');
+        }
+    });
+}
+
 function getLegalTimeType(dusk) {
     var timeType = dusk.Utils.randomId();
     return dusk.timeStack[timeType]
         ? getLegalTimeType(dusk)
         : timeType;
 }
-function recordRequestTime(dusk) {
+function recordRequestTime(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "].");
     dusk.NetWork.on('request', function (options) {
         if (options.record) {
             var timeType_1 = getLegalTimeType(dusk);
@@ -71,7 +92,7 @@ function recordRequestTime(dusk) {
                     url: options.url,
                     duration: dusk.timeEnd(timeType_1),
                 });
-                dusk.NetWork.emit('report', [
+                filterData([
                     data,
                     function (endData) {
                         assert(typeof endData === 'object', 'the report data must be an object');
@@ -83,10 +104,11 @@ function recordRequestTime(dusk) {
     });
 }
 
-function listenerButton(dusk) {
+function listenerButton(dusk, filterData) {
+    assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "].");
     dusk.Template.on('event', function (type, value, detail) {
         var data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
-        dusk.Template.emit('report', [
+        filterData([
             data,
             function (endData) {
                 assert(typeof endData === 'object', 'the report data must be an object');
@@ -100,6 +122,7 @@ function listenerButton(dusk) {
 
 
 var index = /*#__PURE__*/Object.freeze({
+  autoSendRequest: autoSendRequest,
   recordRequestTime: recordRequestTime,
   listenerButton: listenerButton
 });
@@ -119,7 +142,7 @@ function dispatch(name, dusk, component, isPage, options, config) {
         var setData_1 = component.setData;
         component.setData = function (data, callback) {
             setData_1.call(this, data, createWraper(callback, function () {
-                dusk.emit('setData', [data]);
+                dusk.emit('setData', [component, data, config, isPage]);
             }));
         };
     }
@@ -376,6 +399,11 @@ var Dusk = (function (_super) {
         _this.options = filterOptions(options || {});
         return _this;
     }
+    Dusk.prototype.addType = function (type) {
+        if (!this.types.includes(type)) {
+            this.types.push(type);
+        }
+    };
     Dusk.prototype.report = function (type, val) {
         assert(this.types.includes(type), "The [" + type + "] is not rigister.");
         this.emit('report', [type, val]);
@@ -395,7 +423,7 @@ var Dusk = (function (_super) {
             this.timeStack[type] = Date.now();
             return;
         }
-        warn("Timer [" + type + "] already exists.", true);
+        warning("Timer [" + type + "] already exists.", true);
     };
     Dusk.prototype.timeEnd = function (type, fn) {
         if (typeof type === 'string') {
@@ -409,7 +437,7 @@ var Dusk = (function (_super) {
                 return duration;
             }
         }
-        warn("Timer [" + type + "] already exists.");
+        warning("Timer [" + type + "] already exists.");
         return null;
     };
     return Dusk;
@@ -418,15 +446,15 @@ var Dusk = (function (_super) {
 var nativeWX = wx;
 function overiddenWX(dusk, rewrite) {
     var routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo,navigateBack';
-    routerMethods.split(',').forEach(function (methodName) {
-        rewrite(methodName, function (options) {
-            dusk.Router.emit(methodName, [options]);
+    routerMethods.split(',').forEach(function (method) {
+        rewrite(method, function (options) {
+            dusk.Router.emit(method, [options]);
         });
     });
     var netWorkMethods = 'request';
-    netWorkMethods.split(',').forEach(function (methodName) {
-        rewrite(methodName, function (options) {
-            dusk.NetWork.emit(methodName, [options]);
+    netWorkMethods.split(',').forEach(function (method) {
+        rewrite(method, function (options) {
+            dusk.NetWork.emit(method, [options]);
         });
     });
 }
@@ -434,11 +462,11 @@ function overiddenWX$1 (dusk) {
     var overrideClass = {
         __wraperFns__: []
     };
-    overiddenWX(dusk, function (name, fn) {
-        assert(name in nativeWX, 'Can\'t allowed add new method.');
-        assert(!(name in overrideClass), "[" + name + "] has been rewritten");
-        overrideClass.__wraperFns__.push(name);
-        overrideClass[name] = createWraper(nativeWX[name], fn);
+    overiddenWX(dusk, function (method, fn) {
+        assert(method in nativeWX, 'Can\'t allowed add new method.');
+        assert(!(method in overrideClass), "[" + method + "] has been rewritten");
+        overrideClass.__wraperFns__.push(method);
+        overrideClass[method] = createWraper(nativeWX[method], fn);
     });
     wx = Object.assign({}, nativeWX, overrideClass);
 }

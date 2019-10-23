@@ -7,6 +7,16 @@ declare let wx: {
   [key: string]: (...args: Array<any>) => any
 }
 
+type RouterMethods =
+    'reLaunch'
+  | 'switchTab'
+  | 'navigateTo'
+  | 'redirectTo'
+  | 'navigateBack'
+
+type RequestMethods =
+    'request'
+
 interface OverrideClass {
   __wraperFns__: Array<string>
 }
@@ -16,22 +26,22 @@ const nativeWX = wx
 function overiddenWX (dusk: Dusk, rewrite: (string, Function) => void) {
   // 导航相关方法
   const routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo,navigateBack'
-  routerMethods.split(',').forEach(methodName => {
+  routerMethods.split(',').forEach((method: RouterMethods) => {
     rewrite(
-      methodName,
+      method,
       (options: RouterOptions) => {
-        dusk.Router.emit(methodName, [options])
+        dusk.Router.emit(method, [options])
       },
     )
   })
 
   // 网络请求相关方法
   const netWorkMethods = 'request'
-  netWorkMethods.split(',').forEach(methodName => {
+  netWorkMethods.split(',').forEach((method: RequestMethods) => {
     rewrite(
-      methodName,
+      method,
       (options: RequestOptions) => {
-        dusk.NetWork.emit(methodName, [options])
+        dusk.NetWork.emit(method, [options])
       },
     )
   })
@@ -39,28 +49,26 @@ function overiddenWX (dusk: Dusk, rewrite: (string, Function) => void) {
 
 export default function (dusk: Dusk) {
   const overrideClass: OverrideClass = {
+    // 这个属性记录着更改过的方法
     __wraperFns__: []
   }
 
   overiddenWX(
     dusk,
-    (
-      name: string,
-      fn: (...args: Array<any>) => any
-    ) => {
+    (method: string, fn: (...args: Array<any>) => any) => {
       // 只允许重写，不允许新增
       // 如果需要新增全局方法，不应该写在这里
       assert(
-        name in nativeWX,
+        method in nativeWX,
         'Can\'t allowed add new method.',
       )
       assert(
-        !(name in overrideClass),
-        `[${name}] has been rewritten`,
+        !(method in overrideClass),
+        `[${method}] has been rewritten`,
       )
 
-      overrideClass.__wraperFns__.push(name)
-      overrideClass[name] = createWraper(nativeWX[name], fn)
+      overrideClass.__wraperFns__.push(method)
+      overrideClass[method] = createWraper(nativeWX[method], fn)
     },
   )
 

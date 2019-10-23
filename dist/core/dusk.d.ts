@@ -25,6 +25,7 @@ export default class Dusk extends Event {
     depComponents: Map<WxPage | WxComponent, boolean>;
     installedPlugins: Set<(...args: any[]) => any>;
     constructor(options: Options);
+    addType(type: string): void;
     report(type: string, val: any): void;
     addPlugin<T extends (dusk: Dusk, ...args: Array<any>) => any>(plugin: T, ...args: any[]): ReturnType<T>;
     time(type: string): void;

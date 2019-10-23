@@ -15,7 +15,8 @@ export interface RequestOptions {
 export interface baseReportData {
     t: number;
     p: string;
-    unid: number;
+    bm?: string;
+    unid: string;
     exd: {
         [key: string]: any;
     };

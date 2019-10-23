@@ -1,6 +1,6 @@
-export const warn = (message: string, isWarn?: boolean) => {
-  message = `\n[SDK warn]: ${message}\n\n`
-  if (isWarn) {
+export const warning = (message: string, iswarning?: boolean) => {
+  message = `\n[SDK warning]: ${message}\n\n`
+  if (iswarning) {
     console.warn(message)
     return
   }
@@ -8,7 +8,7 @@ export const warn = (message: string, isWarn?: boolean) => {
 }
 
 export const assert = (condition: boolean, error: string) => {
-  if (!condition) warn(error)
+  if (!condition) warning(error)
 }
 
 export const isUndef = v => {

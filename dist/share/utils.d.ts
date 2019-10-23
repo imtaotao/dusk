@@ -1,4 +1,4 @@
-export declare const warn: (message: string, isWarn?: boolean | undefined) => void;
+export declare const warning: (message: string, iswarning?: boolean | undefined) => void;
 export declare const assert: (condition: boolean, error: string) => void;
 export declare const isUndef: (v: any) => boolean;
 export declare const once: <T extends (...args: any[]) => any>(fn: T) => T;
