@@ -67,7 +67,7 @@ function recordRequestTime(dusk) {
             var timeType_1 = getLegalTimeType(dusk);
             dusk.time(timeType_1);
             options.complete = dusk.Utils.createWraper(options.complete, function () {
-                var data = dusk.Utils.baseReportData(5, 'stat', 'requestTime', {
+                var data = dusk.NetWork.baseReportData(5, 'stat', 'requestTime', {
                     url: options.url,
                     duration: dusk.timeEnd(timeType_1),
                 });
@@ -75,7 +75,7 @@ function recordRequestTime(dusk) {
                     data,
                     function (endData) {
                         assert(typeof endData === 'object', 'the report data must be an object');
-                        return dusk.Utils.report(dusk.options.url, endData, 'GET');
+                        return dusk.NetWork.report(dusk.options.url, endData, 'GET');
                     },
                 ]);
             });
@@ -85,12 +85,12 @@ function recordRequestTime(dusk) {
 
 function listenerButton(dusk) {
     dusk.Template.on('event', function (type, value, detail) {
-        var data = dusk.Utils.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
+        var data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type: type, value: value });
         dusk.Template.emit('report', [
             data,
             function (endData) {
                 assert(typeof endData === 'object', 'the report data must be an object');
-                return dusk.Utils.report(dusk.options.url, endData, 'GET');
+                return dusk.NetWork.report(dusk.options.url, endData, 'GET');
             },
             detail,
         ]);
@@ -276,38 +276,42 @@ var Utils = {
             ? pages[pages.length - 1]
             : null;
     },
-    baseReportData: function (tp, sp, moduleTag, expandData) {
-        return {
-            tp: tp,
-            sp: sp,
-            t: Date.now(),
-            bm: moduleTag,
-            unid: this.unid(),
-            exd: expandData || {},
-            p: (this.getCurrentPage() || { route: '' }).route,
-        };
-    },
-    report: function (url, data, method, header) {
-        if (header === void 0) { header = {}; }
-        return new Promise(function (resolve) {
-            wx.request({ url: url, data: data, method: method, header: header, complete: resolve });
-        });
-    },
 };
 
 var Router = (function (_super) {
     __extends(Router, _super);
-    function Router() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function Router(dusk) {
+        var _this = _super.call(this) || this;
+        _this.dusk = dusk;
+        return _this;
     }
     return Router;
 }(Event));
 
 var NetWork = (function (_super) {
     __extends(NetWork, _super);
-    function NetWork() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function NetWork(dusk) {
+        var _this = _super.call(this) || this;
+        _this.dusk = dusk;
+        return _this;
     }
+    NetWork.prototype.baseReportData = function (tp, sp, moduleTag, expandData) {
+        return {
+            tp: tp,
+            sp: sp,
+            t: Date.now(),
+            bm: moduleTag,
+            exd: expandData || {},
+            unid: this.dusk.Utils.unid(),
+            p: (this.dusk.Utils.getCurrentPage() || { route: '' }).route,
+        };
+    };
+    NetWork.prototype.report = function (url, data, method, header) {
+        if (header === void 0) { header = {}; }
+        return new Promise(function (resolve) {
+            wx.request({ url: url, data: data, method: method, header: header, complete: resolve });
+        });
+    };
     return NetWork;
 }(Event));
 
@@ -362,9 +366,9 @@ var Dusk = (function (_super) {
         var _this = _super.call(this) || this;
         _this.version = '0.0.1';
         _this.Utils = Utils;
-        _this.Router = new Router();
-        _this.NetWork = new NetWork();
         _this.Template = new Template();
+        _this.Router = new Router(_this);
+        _this.NetWork = new NetWork(_this);
         _this.types = [];
         _this.timeStack = Object.create(null);
         _this.depComponents = new Map();
@@ -413,7 +417,7 @@ var Dusk = (function (_super) {
 
 var nativeWX = wx;
 function overiddenWX(dusk, rewrite) {
-    var routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo';
+    var routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo,navigateBack';
     routerMethods.split(',').forEach(function (methodName) {
         rewrite(methodName, function (options) {
             dusk.Router.emit(methodName, [options]);
@@ -422,18 +426,21 @@ function overiddenWX(dusk, rewrite) {
     var netWorkMethods = 'request';
     netWorkMethods.split(',').forEach(function (methodName) {
         rewrite(methodName, function (options) {
-            dusk.NetWork.emit(methodName, options);
+            dusk.NetWork.emit(methodName, [options]);
         });
     });
 }
 function overiddenWX$1 (dusk) {
-    var overideClass = {};
+    var overrideClass = {
+        __wraperFns__: []
+    };
     overiddenWX(dusk, function (name, fn) {
         assert(name in nativeWX, 'Can\'t allowed add new method.');
-        assert(!(name in overideClass), "[" + name + "] has been rewritten");
-        overideClass[name] = createWraper(nativeWX[name], fn);
+        assert(!(name in overrideClass), "[" + name + "] has been rewritten");
+        overrideClass.__wraperFns__.push(name);
+        overrideClass[name] = createWraper(nativeWX[name], fn);
     });
-    wx = Object.assign({}, nativeWX, overideClass);
+    wx = Object.assign({}, nativeWX, overrideClass);
 }
 
 var nativeApp = App;

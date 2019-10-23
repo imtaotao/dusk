@@ -17,7 +17,7 @@ export function listenerButton (dusk: Dusk) {
     value: any,
     detail: () => DetailResult
   ) => {
-    const data = dusk.Utils.baseReportData(0, 'stat', 'clickButton', { type, value })
+    const data = dusk.NetWork.baseReportData(0, 'stat', 'clickButton', { type, value })
 
     // 所有的具体上报都要走一遍业务逻辑，这样可以添加自定义的数据和修正数据
     // 第一个参数默认为 data
@@ -32,7 +32,7 @@ export function listenerButton (dusk: Dusk) {
             'the report data must be an object'
           )
 
-          return dusk.Utils.report(dusk.options.url, endData, 'GET')
+          return dusk.NetWork.report(dusk.options.url, endData, 'GET')
         },
         detail,
       ] as ReportNextResult,

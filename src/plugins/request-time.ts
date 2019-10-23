@@ -23,7 +23,7 @@ export function recordRequestTime (dusk: Dusk) {
       options.complete = dusk.Utils.createWraper(
         options.complete,
         () => {
-          const data = dusk.Utils.baseReportData(
+          const data = dusk.NetWork.baseReportData(
             5,
             'stat',
             'requestTime',
@@ -41,7 +41,7 @@ export function recordRequestTime (dusk: Dusk) {
                   typeof endData === 'object',
                   'the report data must be an object'
                 )
-                return dusk.Utils.report(dusk.options.url, endData, 'GET')
+                return dusk.NetWork.report(dusk.options.url, endData, 'GET')
               },
             ] as ReportNextResult,
           )

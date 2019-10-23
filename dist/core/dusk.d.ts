@@ -16,11 +16,10 @@ export default class Dusk extends Event {
         unid(): string;
         randomId(max?: number, min?: number, fraction?: number): string;
         getCurrentPage(): WxPage | null;
-        report(url: string, data: any, method: "GET" | "POST", header?: Object): Promise<void>;
     };
+    Template: Template;
     Router: Router;
     NetWork: NetWork;
-    Template: Template;
     types: Array<string>;
     timeStack: any;
     depComponents: Map<WxPage | WxComponent, boolean>;

@@ -51,7 +51,7 @@ export const createWraper = <T extends (...args: Array<any>) => any>(
   target?: T,
   before?: T,
   after?: T,
-) => {
+) : T => {
   function wrap (...args) {
     let result
     if (typeof before === 'function') {
