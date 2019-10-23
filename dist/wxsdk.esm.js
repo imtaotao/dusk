@@ -6,15 +6,13 @@ function getLegalTimeType(dusk) {
 }
 function recordRequestTime(dusk) {
     dusk.NetWork.on('request', function (options) {
-        var timeType = getLegalTimeType(dusk);
-        dusk.time(timeType);
-        if (options.url !== dusk.options.url) {
-            if (options.record) {
-                options.complete = dusk.Utils.createWraper(options.complete, function () {
-                    var duration = dusk.timeEnd(timeType);
-                    console.log(options.url, duration);
-                });
-            }
+        if (options.record) {
+            var timeType_1 = getLegalTimeType(dusk);
+            dusk.time(timeType_1);
+            options.complete = dusk.Utils.createWraper(options.complete, function () {
+                var duration = dusk.timeEnd(timeType_1);
+                console.log(options.url, duration);
+            });
         }
     });
 }

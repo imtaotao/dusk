@@ -12,21 +12,19 @@ function getLegalTimeType (dusk: Dusk) : string {
 
 export function recordRequestTime (dusk: Dusk) {
   dusk.NetWork.on('request', (options: RequestOptions) => {
-    // 记录时间
-    const timeType = getLegalTimeType(dusk)
-    dusk.time(timeType)
+    // 过滤掉不需要记录的请求
+    if (options.record) {
+      // 记录时间
+      const timeType = getLegalTimeType(dusk)
+      dusk.time(timeType)
 
-    // 过滤掉 dusk 内部使用的请求
-    if (options.url !== dusk.options.url) {
-      if (options.record) {
-        options.complete = dusk.Utils.createWraper(
-          options.complete,
-          () => {
-            const duration = dusk.timeEnd(timeType)
-            console.log(options.url, duration)
-          }
-        )
-      }
+      options.complete = dusk.Utils.createWraper(
+        options.complete,
+        () => {
+          const duration = dusk.timeEnd(timeType)
+          console.log(options.url, duration)
+        }
+      )
     }
   })
 }
