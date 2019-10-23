@@ -1,13 +1,14 @@
+import createStore from './store'
 import { createDuskInstance, plugins } from './sdk/wxsdk.esm'
 
+const store = createStore()
 const Dusk = createDuskInstance({
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
-Dusk.addPlugin(plugins.listenerButton, {
-  sendData (data, detail) {
-    console.log(data)
-    return data
-  }
+
+Dusk.addPlugin(plugins.listenerButton, (data, next) => {
+  console.log(data)
+  next(data)
 })
 
 // SDK.addPlugin(plugins.firstScreenTime)
@@ -60,10 +61,7 @@ App({
   },
 
   onShow() {
-    console.log('appshow')
-    setTimeout(() => {
-      console.log(SDK.router.getCurrentPage())
-    })
+    
   },
 
   globalData: {

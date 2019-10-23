@@ -1,2 +1,3 @@
 import Dusk from '../core/dusk';
-export declare function listenerButton(dusk: Dusk, filterData: Function): void;
+import { ReportNextResult } from './index';
+export declare function listenerButton(dusk: Dusk, filterData: (...args: ReportNextResult) => void): void;

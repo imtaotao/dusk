@@ -28,7 +28,7 @@ type FilterData = (
 export function autoSendRequest (dusk: Dusk, filterData: FilterData) {
   assert(
     typeof filterData === 'function',
-    `The [filterData] must be a function, but now is a [${typeof filterData}].`
+    `The [filterData] must be a function, but now is a [${typeof filterData}]. \n\n from autoRequest plugin`
   )
 
   // 监听 report

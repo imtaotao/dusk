@@ -12,10 +12,13 @@ function getLegalTimeType (dusk: Dusk) : string {
     : timeType
 }
 
-export function recordRequestTime (dusk: Dusk, filterData: Function) {
+export function recordRequestTime (
+  dusk: Dusk,
+  filterData: (...args: ReportNextResult) => void
+) {
   assert(
     typeof filterData === 'function',
-    `The [filterData] must be a function, but now is a [${typeof filterData}].`
+    `The [filterData] must be a function, but now is a [${typeof filterData}]. \n\n from recordRequestTime plugin`
   )
 
   dusk.NetWork.on('request', (options: RequestOptions) => {
@@ -38,16 +41,13 @@ export function recordRequestTime (dusk: Dusk, filterData: Function) {
             },
           )
 
-          filterData([
-            data,
-            endData => {
-              assert(
-                typeof endData === 'object',
-                'the report data must be an object'
-              )
-              return dusk.NetWork.report(dusk.options.url, endData, 'GET')
-            },
-          ] as ReportNextResult)
+          filterData(data, endData => {
+            assert(
+              typeof endData === 'object',
+              'the report data must be an object'
+            )
+            return dusk.NetWork.report(dusk.options.url, endData, 'GET')
+          })
         }
       )
     }
