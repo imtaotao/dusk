@@ -2,14 +2,20 @@ import createStore from './store'
 import { createDusk, plugins } from './sdk/wxsdk.esm'
 
 const store = createStore()
-
-const Dusk = createDusk(App, Page, Component, {
+const Dusk = createDusk({
+  nativeApp: App,
+  nativePage: Page,
+  nativeComponent: Component,
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
 
 Dusk.addPlugin(plugins.listenerButton, (data, next) => {
   console.log(data)
   next(data)
+})
+
+Dusk.on('onLoad', (...args) => {
+  console.log(args)
 })
 
 // SDK.addPlugin(plugins.firstScreenTime)

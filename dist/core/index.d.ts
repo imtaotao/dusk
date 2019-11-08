@@ -1,2 +1,2 @@
 import Dusk, { Options } from './dusk';
-export default function createDusk(nativeApp: Function, nativePage: Function, nativeComponent: Function, options: Options): Dusk;
+export default function createDusk(options: Options): Dusk;

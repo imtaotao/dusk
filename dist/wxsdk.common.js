@@ -406,8 +406,9 @@ function overiddenWX$1 (dusk) {
 }
 
 var isInitComplete = false;
-function createDusk(nativeApp, nativePage, nativeComponent, options) {
+function createDusk(options) {
     assert(!isInitComplete, 'Can\'t allow repeat initialize.');
+    var nativeApp = options.nativeApp, nativePage = options.nativePage, nativeComponent = options.nativeComponent;
     assert(typeof nativeApp === 'function', 'the [App] must be a function');
     assert(typeof nativePage === 'function', 'the [Page] must be a function');
     assert(typeof nativeComponent === 'function', 'the [Component] must be a function');

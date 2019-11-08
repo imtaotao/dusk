@@ -14,16 +14,13 @@ declare let Component: Function
 
 let isInitComplete = false
 
-export default function createDusk (
-  nativeApp: Function,
-  nativePage: Function,
-  nativeComponent: Function,
-  options: Options,
-) {
+export default function createDusk (options: Options) {
   assert(
     !isInitComplete,
     'Can\'t allow repeat initialize.',
-  )
+    )
+
+  const { nativeApp, nativePage, nativeComponent } = options
 
   assert(
     typeof nativeApp === 'function',

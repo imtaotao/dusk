@@ -8,6 +8,9 @@ import { WxPage, WxComponent } from './overidde-component'
 
 export interface Options {
   url: string
+  nativeApp: Function
+  nativePage: Function
+  nativeComponent: Function
 }
 
 declare const __VERSION__: string
