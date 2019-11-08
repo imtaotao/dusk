@@ -1,5 +1,5 @@
 import createStore from './store'
-import { createDusk, plugins } from './sdk/wxsdk.esm'
+import { createDusk, plugins } from './sdk/dusk.esm'
 
 const store = createStore()
 const Dusk = createDusk({

@@ -1,9 +1,9 @@
 {
-  "name": "wxsdk",
+  "name": "dusk",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/wxsdk.common.js",
-  "module": "dist/wxsdk.esm.js",
+  "main": "dist/dusk.common.js",
+  "module": "dist/dusk.esm.js",
   "scripts": {
     "dev": "node build.js -w",
     "build": "node build.js",
