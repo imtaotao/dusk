@@ -5,3 +5,5 @@
 + `yarn build` 不会生成 soucemap，并会打包一个压缩版本
 + `yarn open` 打开开发者工具，可能需要自己指定开发者工具的安装位置
 + `yarn test` 运行所有的单元测试用例
++ `yarn test:cover` 运行所有的单元测试用例并生成测试覆盖率
+
