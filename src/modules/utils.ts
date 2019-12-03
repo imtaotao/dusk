@@ -31,7 +31,7 @@ export default {
   getCurrentPage () {
     const pages = getCurrentPages()
     return Array.isArray(pages) && pages.length > 0
-        ? pages[pages.length - 1]
-        : null
+      ? pages[pages.length - 1]
+      : null
   },
 }

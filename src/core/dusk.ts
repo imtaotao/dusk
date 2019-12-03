@@ -8,9 +8,9 @@ import { WxPage, WxComponent } from './overidde-component'
 
 export interface Options {
   url: string
-  nativeApp: Function
-  nativePage: Function
-  nativeComponent: Function
+  App: Function
+  Page: Function
+  Component: Function
 }
 
 declare const __VERSION__: string
@@ -32,7 +32,6 @@ export default class Dusk extends Event {
 
   // 工具类
   public Utils = Utils
-
   
   public Router = new Router(this)
   

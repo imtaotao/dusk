@@ -7,6 +7,7 @@ export interface ReportNextResult extends Array<any> {
   2?: any
 }
 
+// 新增的插件在这里 export 出去就行
 export { autoSendRequest } from './auto-request'
 export { recordRequestTime } from './request-time'
 export { listenerButton } from './template-linstener'

@@ -35,6 +35,7 @@ type ComponentLife =
   | 'moved'
   | 'detached'
 
+// 需要监听分发的各种生命周期
 const pageLifeTime = 'onLoad,onShow,onReady,onHide,onUnload'
 const componentLifeTime = 'created,attached,ready,moved,detached'
 const appLifeTime = 'onLaunch,onShow,onHide,onError,onPageNotFound'
@@ -89,10 +90,10 @@ export function overideApp (
   appLifeTime.split(',')
   .forEach((name: AppLife) => {
     config[name] = createWraper(
-        config[name],
-        function (options: Object) {
-          dusk.emit(name, [this, options, config])
-        },
+      config[name],
+      function (options: Object) {
+        dusk.emit(name, [this, options, config])
+      },
     )
   })
   return config
@@ -105,10 +106,10 @@ export function overidePage (
   pageLifeTime.split(',')
   .forEach((name: PageLife) => {
     config[name] = createWraper(
-        config[name],
-        function (options: Object) {
-          dispatch(name, dusk, this, true, options, config)
-        },
+      config[name],
+      function (options: Object) {
+        dispatch(name, dusk, this, true, options, config)
+      },
     )
   })
   return config

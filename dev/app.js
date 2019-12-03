@@ -3,9 +3,9 @@ import { createDusk, plugins } from './sdk/dusk.esm'
 
 const store = createStore()
 const Dusk = createDusk({
-  nativeApp: App,
-  nativePage: Page,
-  nativeComponent: Component,
+  App,
+  Page,
+  Component,
   url: 'https://app.jiebao.zhenai.com/monitor/monitor.gif'
 })
 

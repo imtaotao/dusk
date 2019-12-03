@@ -25,7 +25,7 @@ type FilterData = (
 ) => void
 
 // 自动上报，简化上报流程
-export function autoSendRequest (dusk: Dusk, filterData: FilterData) {
+export function autoSendRequest (dusk: Dusk, filterData: FilterData, url?: string) {
   assert(
     typeof filterData === 'function',
     `The [filterData] must be a function, but now is a [${typeof filterData}]. \n\n from autoRequest plugin`
@@ -46,7 +46,8 @@ export function autoSendRequest (dusk: Dusk, filterData: FilterData) {
     filterData(type, value, genReportData)
 
     if (!isUndef(data)) {
-      dusk.NetWork.report(dusk.options.url, data, 'GET')
+      // 兜底使用 dusk.option.url
+      dusk.NetWork.report(url || dusk.options.url, data, 'GET')
     }
   })
 }

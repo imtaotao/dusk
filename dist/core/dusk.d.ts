@@ -5,9 +5,9 @@ import Template from '../modules/template';
 import { WxPage, WxComponent } from './overidde-component';
 export interface Options {
     url: string;
-    nativeApp: Function;
-    nativePage: Function;
-    nativeComponent: Function;
+    App: Function;
+    Page: Function;
+    Component: Function;
 }
 export default class Dusk extends Event {
     options: Options;

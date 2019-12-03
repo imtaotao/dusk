@@ -408,7 +408,7 @@ function overiddenWX$1 (dusk) {
 var isInitComplete = false;
 function createDusk(options) {
     assert(!isInitComplete, 'Can\'t allow repeat initialize.');
-    var nativeApp = options.nativeApp, nativePage = options.nativePage, nativeComponent = options.nativeComponent;
+    var nativeApp = options.App, nativePage = options.Page, nativeComponent = options.Component;
     assert(typeof nativeApp === 'function', 'the [App] must be a function');
     assert(typeof nativePage === 'function', 'the [Page] must be a function');
     assert(typeof nativeComponent === 'function', 'the [Component] must be a function');
@@ -436,7 +436,7 @@ function createDusk(options) {
     return dusk;
 }
 
-function autoSendRequest(dusk, filterData) {
+function autoSendRequest(dusk, filterData, url) {
     assert(typeof filterData === 'function', "The [filterData] must be a function, but now is a [" + typeof filterData + "]. \n\n from autoRequest plugin");
     dusk.on('report', function (type, value) {
         var data = null;
@@ -451,7 +451,7 @@ function autoSendRequest(dusk, filterData) {
         };
         filterData(type, value, genReportData);
         if (!isUndef(data)) {
-            dusk.NetWork.report(dusk.options.url, data, 'GET');
+            dusk.NetWork.report(url || dusk.options.url, data, 'GET');
         }
     });
 }

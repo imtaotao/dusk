@@ -20,7 +20,11 @@ export default function createDusk (options: Options) {
     'Can\'t allow repeat initialize.',
     )
 
-  const { nativeApp, nativePage, nativeComponent } = options
+  const {
+    App: nativeApp,
+    Page: nativePage,
+    Component: nativeComponent,
+  } = options
 
   assert(
     typeof nativeApp === 'function',

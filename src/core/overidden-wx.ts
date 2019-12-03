@@ -23,7 +23,10 @@ interface OverrideClass {
 
 const nativeWX = wx
 
-function overiddenWX (dusk: Dusk, rewrite: (string, Function) => void) {
+function overiddenWX (
+  dusk: Dusk,
+  rewrite: (key: string, fn: Function) => void,
+) {
   // 导航相关方法
   const routerMethods = 'reLaunch,switchTab,navigateTo,redirectTo,navigateBack'
   routerMethods.split(',').forEach((method: RouterMethods) => {
