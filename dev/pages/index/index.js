@@ -120,5 +120,9 @@ Page({
           console.log('res', res);
         })
         .exec()
+  },
+
+  test(e) {
+    console.log(e)
   }
 })

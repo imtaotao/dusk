@@ -4,7 +4,10 @@
  bindtap="duskEvent"
 >
 	container
-	<view mark:dusk='aaa'>
+	<view
+	 mark:dusk='aaa'
+	 bindtap='test'
+	>
 		aaaa
 		<view mark:dusk='bbb'>
 			bbbb
